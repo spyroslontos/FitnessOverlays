@@ -1,50 +1,53 @@
-    # Virtual environment
-    .fitnessoverlays-venv/
-    venv/
-    env/
+# Virtual environment
+.fitnessoverlays-venv/
+venv/
+env/
 
-    # Python cache
-    __pycache__/
-    *.pyc
-    *.pyo
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
 
-    # IDE folders
-    .vscode/
-    .idea/
-    .cursor
+# IDE folders
+.vscode/
+.idea/
+.cursor
 
-    # OS files
-    .DS_Store
-    Thumbs.db
+# OS files
+.DS_Store
+Thumbs.db
 
-    # Logs
-    logs/
-    *.log
-    npm-debug.log*
-    *_logs/
+# Logs
+logs/
+*.log
+npm-debug.log*
+*_logs/
 
-    # Secrets / Environment files (handled at runtime, not build time)
-    .env
-    .env.*
-    *.env
+# Secrets / Environment files (handled at runtime, not build time)
+.env
+.env.*
+*.env
 
-    # Local DB file (should use a volume or external DB in production)
-    activities.db
-    *.db
-    *.sqlite*
+# Local DB file (should use a volume or external DB in production)
+activities.db
+*.db
+*.sqlite*
 
-    # Git folder
-    .git/
+# Git folder
+.git/
 
-    # Notes / READMEs and extras (usually not needed in runtime image)
-    NOTES.md
-    README.md
-    extras/
+# Notes / READMEs and extras (usually not needed in runtime image)
+NOTES.md
+README.md
+extras/
 
-    # Docker files themselves
-    Dockerfile
-    docker-compose.yml
-    .dockerignore
+# Docker files themselves
+Dockerfile
+docker-compose.yml
+.dockerignore
 
-    # Node.js
-    node_modules/
+# Node.js
+node_modules/
+dist/
+build/
+static/css/tailwind.css

@@ -1,204 +1,243 @@
 {% extends "base.html" %}
 
 {% block style %}
-    <style>
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+<style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
         }
-        .fade-in {
-            animation: fadeIn 1s ease-out forwards;
+
+        to {
+            opacity: 1;
         }
-    </style>
+    }
+
+    .fade-in {
+        animation: fadeIn 1s ease-out forwards;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-    <main class="flex-grow w-full">
+<main class="flex-grow w-full">
 
-        <section class="w-full text-center relative z-10 fade-in py-8 md:py-12">
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-0">
-                <h1 class="text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-fitness-dark-gray leading-tight mb-6">
-                    Convert Your Strava Activities into Transparent Fitness Overlays for Instagram
-                </h1>
-                <p class="text-base sm:text-lg md:text-xl text-fitness-gray max-w-2xl mx-auto">
-                    Easily generate customizable Strava activity overlays to share on Instagram Stories, Reels, or TikTok. Perfect for runners, cyclists, and fitness creators.
-                </p>
-            </div>
+    <section class="w-full text-center relative z-10 fade-in py-8 md:py-12">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-0">
+            <h1
+                class="text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-fitness-dark-gray leading-tight mb-6">
+                Instantly Create Stunning Strava Overlays for Social Media
+            </h1>
+            <p class="text-base sm:text-lg md:text-xl text-fitness-gray max-w-2xl mx-auto">
+                Generate customizable, transparent overlays for sharing your runs, rides, and workouts seamlessly across
+                Instagram, Reels, or TikTok.
+            </p>
+        </div>
 
-            {% if authenticated %}
-                <div id="see-activities-btn" class="flex justify-center py-12">
-                    <a href="/activities" 
-                        class="bg-fitness-green text-white font-bold py-5 px-10 text-lg sm:text-xl rounded-xl
+        {% if authenticated %}
+        <div id="see-activities-btn" class="flex justify-center py-12">
+            <a href="/activities" class="bg-fitness-green text-white font-bold py-5 px-10 text-lg sm:text-xl rounded-xl
                                 transform hover:scale-110 transition-all duration-200 
                                 drop-shadow-lg
                                 flex items-center space-x-2">
-                        <span>See your Activities 📋</span>
-                    </a>
+                <span>See your Activities 📋</span>
+            </a>
+        </div>
+        {% else %}
+        <div class="inline-block py-10">
+            <div>
+                <div id="connect-strava">
+                    <img src="/static/images/btn_strava_connect_with_orange_x2.svg"
+                        alt="Connect your Strava account to create your customized overlays"
+                        class="h-14 sm:h-16 drop-shadow-lg rounded-lg transform hover:scale-110 transition-transform duration-200 cursor-pointer ">
                 </div>
-            {% else %}
-                <div class="inline-block py-10">
-                    <div>
-                        <div id="connect-strava">
-                            <img src="/static/images/btn_strava_connect_with_orange_x2.svg" 
-                                alt="Connect your Strava account to create your customized overlays" 
-                                class="h-14 sm:h-16 drop-shadow-lg rounded-lg transform hover:scale-110 transition-transform duration-200 cursor-pointer ">
-                        </div>
-                        <p class="text-sm text-fitness-gray text-center mt-2 select-none">
-                            Completely free. Just log in with Strava.
-                        </p>
-                    </div>
-                    <div class="text-fitness-gray text-sm my-4 text-center select-none">or</div>
-                    <div class="text-center">
-                        <div>
-                            <a href="/demo" 
-                                class="bg-gradient-to-br from-fitness-green to-fitness-light-green text-fitness-dark-gray font-bold py-3 px-6 text-base rounded-xl
+                <p class="text-sm text-fitness-gray text-center mt-2 select-none">
+                    Completely free. Just log in with Strava.
+                </p>
+            </div>
+            <div class="text-fitness-gray text-sm my-4 text-center select-none">or</div>
+            <div class="text-center">
+                <div>
+                    <a href="/demo" class="bg-gradient-to-br from-fitness-green to-fitness-light-green text-fitness-dark-gray font-bold py-3 px-6 text-base rounded-xl
                                         transform hover:scale-110 transition-all duration-200 
                                         drop-shadow-lg border border-fitness-green
                                         inline-flex items-center space-x-2">
-                                <span>Try Demo</span>
-                            </a>
-                            <p class="text-xs text-fitness-gray text-center mt-2 select-none">
-                                See how it works
-                            </p>
+                        <span>Try Demo</span>
+                    </a>
+                    <p class="text-xs text-fitness-gray text-center mt-2 select-none">
+                        See how it works
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Toast -->
+        <div id="toast"
+            class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-fitness-green text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 pointer-events-none z-50 opacity-0">
+            Copied to clipboard!
+        </div>
+
+        <div class="w-full flex flex-col items-center">
+            <div class="w-full max-w-2xl px-4 sm:px-6">
+                <h3 class="text-3xl sm:text-4xl font-extrabold text-center text-fitness-dark-gray mb-8 tracking-tight">
+                    Overlay Showcase</h3>
+
+                <div id="default-carousel" class="relative mx-auto w-full max-w-[350px] px-4 sm:px-0"
+                    data-carousel="slide" data-carousel-interval="5000">
+                    <div class="relative overflow-hidden rounded-lg drop-shadow-lg aspect-[9/16]">
+                        <div class="hidden duration-700 ease-in-out" data-carousel-item="active">
+                            <img src="/static/images/goats-river-strava-overlay.png" loading="lazy"
+                                class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-lg"
+                                alt="Strava run overlay on a scenic trail photo with goats by a river in Düsseldorf">
+                        </div>
+                        <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                            <img src="/static/images/sunset-lake-strava-workout.png" loading="lazy"
+                                class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-lg"
+                                alt="Strava workout overlay with transparent background showing run stats over a golden sunset lake scene">
+                        </div>
+                        <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                            <img src="/static/images/rhine-running-overlay.png" loading="lazy"
+                                class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-lg"
+                                alt="Strava overlay on a photo of the Rhine River in Düsseldorf">
+                        </div>
+                        <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                            <img src="/static/images/foggy-winter-park-run.png" loading="lazy"
+                                class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-lg"
+                                alt="Winter park run with heavy fog and a transparent Strava overlay">
+                        </div>
+                        <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                            <img src="/static/images/cherry-blossom-strava-metrics.png" loading="lazy"
+                                class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-lg"
+                                alt="Spring cherry blossom tree with an Instagram-ready Strava overlay">
                         </div>
                     </div>
-                </div>
-                
-            {% endif %}
 
-            <div class="w-full flex flex-col items-center">
-                <div class="w-full max-w-2xl px-4 sm:px-6">
-                    <h3 class="text-3xl sm:text-4xl font-extrabold text-center text-fitness-dark-gray mb-8 tracking-tight">Overlay Showcase</h3>
-
-                    <div id="default-carousel" class="relative mx-auto w-full max-w-[350px] px-4 sm:px-0" data-carousel="slide">
-                        <div class="relative overflow-hidden rounded-lg drop-shadow-lg aspect-[9/16]">
-                            <div class="hidden duration-700 ease-in-out" data-carousel-item="active">
-                                <img src="/static/images/goats-river-strava-overlay.png" 
-                                    class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-lg" 
-                                    alt="Strava run overlay on a scenic trail photo with goats by a river in Düsseldorf, showing distance, time, pace, and heart rate metrics">
-                            </div>
-                            <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                                <img src="/static/images/sunset-lake-strava-workout.png" 
-                                    class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-lg" 
-                                    alt="Strava workout overlay with transparent background showing run stats over a golden sunset lake scene, including distance, time, pace, calories, and heart rate data">
-                            </div>
-                            <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                                <img src="/static/images/rhine-running-overlay.png" 
-                                    class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-lg" 
-                                    alt="Strava overlay on a photo of the Rhine River in Düsseldorf showing running distance, time, pace, heart rate, and calories burned">
-                            </div>
-                            <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                                <img src="/static/images/foggy-winter-park-run.png" 
-                                    class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-lg" 
-                                    alt="Winter park run with heavy fog and a transparent Strava overlay showing pace, heart rate, distance, and workout stats">
-                            </div>
-                            <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                                <img src="/static/images/cherry-blossom-strava-metrics.png" 
-                                    class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-lg" 
-                                    alt="Spring cherry blossom tree with an Instagram-ready Strava overlay showing run distance, time, and pace">
-                            </div>
-                        </div>
-
-                        <div class="mt-4 flex justify-center space-x-3 rtl:space-x-reverse">
-                            <button type="button" class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray" aria-current="true" aria-label="Slide 1" data-carousel-slide-to="0"></button>
-                            <button type="button" class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray" aria-current="false" aria-label="Slide 2" data-carousel-slide-to="1"></button>
-                            <button type="button" class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray" aria-current="false" aria-label="Slide 3" data-carousel-slide-to="2"></button>
-                            <button type="button" class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray" aria-current="false" aria-label="Slide 4" data-carousel-slide-to="3"></button>
-                            <button type="button" class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray" aria-current="false" aria-label="Slide 5" data-carousel-slide-to="4"></button>
-                        </div>
+                    <div class="mt-4 flex justify-center space-x-3 rtl:space-x-reverse">
+                        <button type="button"
+                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray"
+                            aria-current="true" aria-label="Slide 1" data-carousel-slide-to="0"></button>
+                        <button type="button"
+                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray"
+                            aria-current="false" aria-label="Slide 2" data-carousel-slide-to="1"></button>
+                        <button type="button"
+                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray"
+                            aria-current="false" aria-label="Slide 3" data-carousel-slide-to="2"></button>
+                        <button type="button"
+                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray"
+                            aria-current="false" aria-label="Slide 4" data-carousel-slide-to="3"></button>
+                        <button type="button"
+                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray"
+                            aria-current="false" aria-label="Slide 5" data-carousel-slide-to="4"></button>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section class="w-full py-8 md:py-12 bg-white">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-6">
-                    <h2 class="text-4xl md:text-5xl font-bold text-fitness-dark-gray">How It Works</h2>
-                    <p class="mt-4 text-lg text-fitness-gray">Simple steps to make your activities share-worthy.</p>
+    <section class="w-full py-8 md:py-12 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-6">
+                <h2 class="text-4xl md:text-5xl font-bold text-fitness-dark-gray">How It Works</h2>
+                <p class="mt-4 text-lg text-fitness-gray">Simple steps to make your activities share-worthy.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
+                <!-- Step 1 -->
+                <div
+                    class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
+                    <div class="flex justify-center mb-6">
+                        <div
+                            class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
+                            <i class="fas fa-link text-2xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">1. Connect</h3>
+                    <p class="mt-2 text-center text-fitness-gray">Click the Strava button to securely link your account.
+                        We only access activity data.</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
-                    <!-- Step 1 -->
-                    <div class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
-                        <div class="flex justify-center mb-6">
-                            <div class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
-                                <i class="fas fa-link text-2xl"></i>
-                            </div>
+                <!-- Step 2 -->
+                <div
+                    class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
+                    <div class="flex justify-center mb-6">
+                        <div
+                            class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
+                            <i class="fas fa-list-ul text-2xl"></i>
                         </div>
-                        <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">1. Connect</h3>
-                        <p class="mt-2 text-center text-fitness-gray">Click the Strava button to securely link your account. We only access activity data.</p>
                     </div>
+                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">2. Select Activity</h3>
+                    <p class="mt-2 text-center text-fitness-gray">Browse your recent activities and select the one you
+                        want to transform into an overlay.</p>
+                </div>
 
-                    <!-- Step 2 -->
-                    <div class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
-                        <div class="flex justify-center mb-6">
-                            <div class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
-                                <i class="fas fa-list-ul text-2xl"></i>
-                            </div>
+                <!-- Step 3 -->
+                <div
+                    class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
+                    <div class="flex justify-center mb-6">
+                        <div
+                            class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
+                            <i class="fas fa-palette text-2xl"></i>
                         </div>
-                        <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">2. Select Activity</h3>
-                        <p class="mt-2 text-center text-fitness-gray">Browse your recent activities and select the one you want to transform into an overlay.</p>
                     </div>
+                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">3. Customize</h3>
+                    <p class="mt-2 text-center text-fitness-gray">Choose stats to show, pick colors, adjust text size,
+                        alignment, and columns for the perfect look.</p>
+                </div>
 
-                    <!-- Step 3 -->
-                    <div class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
-                        <div class="flex justify-center mb-6">
-                            <div class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
-                                <i class="fas fa-palette text-2xl"></i>
-                            </div>
+                <!-- Step 4 -->
+                <div
+                    class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
+                    <div class="flex justify-center mb-6">
+                        <div
+                            class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
+                            <i class="fas fa-share-square text-2xl"></i>
                         </div>
-                        <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">3. Customize</h3>
-                        <p class="mt-2 text-center text-fitness-gray">Choose stats to show, pick colors, adjust text size, alignment, and columns for the perfect look.</p>
                     </div>
-
-                    <!-- Step 4 -->
-                    <div class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
-                        <div class="flex justify-center mb-6">
-                            <div class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
-                                <i class="fas fa-share-square text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">4. Copy & Share</h3>
-                        <p class="mt-2 text-center text-fitness-gray">Copy the overlay image (transparent background) or text, and overlay it on your Images or Videos.</p>
-                    </div>
+                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">4. Copy & Share</h3>
+                    <p class="mt-2 text-center text-fitness-gray">Copy the overlay image (transparent background) or
+                        text, and overlay it on your Images or Videos.</p>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section class="w-full py-8 md:py-12">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center">
-                    <h2 class="text-4xl md:text-5xl font-bold text-fitness-dark-gray">Top Features of Our Strava Overlay Generator</h2>
-                    <p class="my-4 text-lg text-fitness-gray">Everything you need to make your Strava stats pop.</p>
+    <section class="w-full py-8 md:py-12">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-4xl md:text-5xl font-bold text-fitness-dark-gray">Top Features of Our Strava Overlay
+                    Generator</h2>
+                <p class="my-4 text-lg text-fitness-gray">Everything you need to make your Strava stats pop.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-center">
+                <div class="p-4">
+                    <div
+                        class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Transparent Backgrounds</h3>
+                    <p class="text-fitness-gray">Your overlays blend seamlessly with any Instagram Story background.</p>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-center">
-                    <div class="p-4">
-                        <div class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
-                            <i class="fas fa-image"></i>
-                        </div>
-                        <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Transparent Backgrounds</h3>
-                        <p class="text-fitness-gray">Your overlays blend seamlessly with any Instagram Story background.</p>
+                <div class="p-4">
+                    <div
+                        class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
+                        <i class="fas fa-text-height"></i>
                     </div>
-                    <div class="p-4">
-                        <div class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
-                            <i class="fas fa-text-height"></i>
-                        </div>
-                        <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Full Customization</h3>
-                        <p class="text-fitness-gray">Control stats, colors, sizes, and layout. Make it truly yours.</p>
+                    <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Full Customization</h3>
+                    <p class="text-fitness-gray">Control stats, colors, sizes, and layout. Make it truly yours.</p>
+                </div>
+                <div class="p-4">
+                    <div
+                        class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
+                        <i class="fas fa-bolt"></i>
                     </div>
-                    <div class="p-4">
-                        <div class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Quick & Easy</h3>
-                        <p class="text-fitness-gray">No complex software. Create stunning shares in seconds, directly in your browser.</p>
-                    </div>
+                    <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Quick & Easy</h3>
+                    <p class="text-fitness-gray">No complex software. Create stunning shares in seconds, directly in
+                        your browser.</p>
                 </div>
             </div>
-        </section>
-
-    </main>
+        </div>
+    </section>
+</main>
 {% endblock %}
 
 
@@ -207,7 +246,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         const connectStravaBtn = document.getElementById('connect-strava');
 
-        connectStravaBtn?.addEventListener("click", function() {
+        connectStravaBtn?.addEventListener("click", function () {
             window.location.href = "/login";
         });
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,9 @@
     <title>Strava Overlays for Instagram | Fitness Overlays</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@400;700&family=Lato:wght@400;700&family=Oswald:wght@400;700&family=Lora:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@400;700&family=Lato:wght@400;700&family=Oswald:wght@400;700&family=Lora:wght@400;700&family=Special+Elite&display=swap"
+        rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="/static/css/tailwind.css" rel="stylesheet">
     <script src="/static/js/common.js" defer></script>
@@ -20,7 +23,7 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY1F9C3JC8"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+        function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
 
         gtag('config', 'G-PY1F9C3JC8');
@@ -30,18 +33,20 @@
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Create Instagram-ready Strava overlays with transparent backgrounds. Fast, customizable, and perfect for runners and cyclists.">
-    <meta name="robots" content="index, follow">
+    <meta name="description"
+        content="Create Instagram-ready Strava overlays with transparent backgrounds. Fast, customizable, and perfect for runners and cyclists.">
     <meta name="language" content="English">
     <meta name="author" content="Fitness Overlays">
-    <meta name="wot-verification" content="be349437437d231681e7"/>
-    <meta name="keywords" content="Strava overlay, fitness overlay, Instagram fitness, transparent fitness stats, running overlay, cycling overlay, fitness Instagram export">
+    <meta name="wot-verification" content="be349437437d231681e7" />
+    <meta name="keywords"
+        content="Strava overlay, fitness overlay, Instagram fitness, transparent fitness stats, running overlay, cycling overlay, fitness Instagram export">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://fitnessoverlays.com{{ request.path }}">
     <meta property="og:title" content="Instagram-Ready Strava Overlays with Transparent Backgrounds | Fitness Overlays">
-    <meta property="og:description" content="Create customizable, Instagram-ready Strava overlays with transparent backgrounds. Export fitness visuals instantly and skip background removers. Perfect for runners, cyclists, and creators.">
+    <meta property="og:description"
+        content="Create customizable, Instagram-ready Strava overlays with transparent backgrounds. Export fitness visuals instantly and skip background removers. Perfect for runners, cyclists, and creators.">
     <meta property="og:image" content="https://fitnessoverlays.com/static/images/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -52,7 +57,8 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://fitnessoverlays.com{{ request.path }}">
     <meta name="twitter:title" content="Customizable Strava Overlays for Instagram | Fitness Overlays">
-    <meta name="twitter:description" content="Create customizable, Instagram-ready Strava overlays with transparent backgrounds. Export fitness visuals instantly and skip background removers. Perfect for runners, cyclists, and creators.">
+    <meta name="twitter:description"
+        content="Create customizable, Instagram-ready Strava overlays with transparent backgrounds. Export fitness visuals instantly and skip background removers. Perfect for runners, cyclists, and creators.">
     <meta name="twitter:image" content="https://fitnessoverlays.com/static/images/og-image.png">
     <meta name="twitter:site" content="@spyroslontos">
     <meta name="twitter:creator" content="@spyroslontos">
@@ -70,17 +76,24 @@
     <link rel="canonical" href="https://fitnessoverlays.com{{ request.path }}">
 
     <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          "name": "Fitness Overlays",
-          "url": "https://fitnessoverlays.com/",
-          "description": "Create customizable, Instagram-ready Strava overlays with transparent backgrounds. Export fitness visuals instantly and skip background removers. Perfect for runners, cyclists, and creators.",
-          "author": {
-            "@type": "Person",
-            "name": "Spyros Lontos"
-          }
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Fitness Overlays",
+        "url": "https://fitnessoverlays.com/",
+        "description": "Create customizable, Instagram-ready Strava overlays with transparent backgrounds. Export fitness visuals instantly and skip background removers. Perfect for runners, cyclists, and creators.",
+        "operatingSystem": "Web, iOS, Android",
+        "applicationCategory": "Sports",
+        "offers": {
+          "@type": "Offer",
+          "price": "0", 
+          "priceCurrency": "EUR"
+        },
+        "creator": {
+          "@type": "Person",
+          "name": "Spyros Lontos"
         }
+      }
     </script>
 
     <script type="application/ld+json">
@@ -89,7 +102,7 @@
         "@type": "Organization",
         "name": "Fitness Overlays",
         "url": "https://fitnessoverlays.com/",
-        "logo": "https://fitnessoverlays.com/static/images/FitnessOverlaysLogo.png",
+        "logo": "https://fitnessoverlays.com/static/images/FitnessOverlaysLogoNew.png",
         "sameAs": [
           "https://twitter.com/spyroslontos"
         ],
@@ -108,128 +121,146 @@
 
     {% block style %}{% endblock %}
 </head>
-<body class="font-sans antialiased text-fitness-dark-gray gradient-bg min-h-screen flex flex-col flex-grow" style="touch-action: manipulation;">
+
+<body class="font-sans antialiased text-fitness-dark-gray gradient-bg min-h-screen flex flex-col flex-grow"
+    style="touch-action: manipulation;">
 
     <header class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-50 border-b border-fitness-light-gray/50">
-        {% if authenticated %}
-        <nav class="container mx-auto px-2 sm:px-4 py-3 grid grid-cols-[60px_1fr_60px] sm:grid-cols-3 items-center max-w-[800px]">
-            <!-- Profile Dropdown Left -->
-            <div class="flex justify-start min-w-[40px]">
+        <nav class="container mx-auto px-4 py-3 flex justify-between items-center max-w-[900px]">
+            <!-- Left: Logo -->
+            <div class="flex items-center">
+                <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity group">
+                    <img src="/static/images/FitnessOverlaysLogo.ico" alt="Fitness Overlays Logo"
+                        class="w-8 h-8 rounded-md group-hover:scale-110 transition-transform duration-200">
+                    <div class="text-xl sm:text-2xl font-bold leading-none">
+                        <span class="text-fitness-green">Fitness</span><span
+                            class="text-fitness-dark-gray">Overlays</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Right: Profile / Auth -->
+            <div class="flex items-center">
+                {% if authenticated %}
                 <div id="profile-dropdown-container" class="relative">
                     <!-- Trigger -->
-                    <div id="profile-picture-trigger" class="cursor-pointer relative">
-                        <img id="profile-picture"
-                            src="{{ athlete_profile }}"
+                    <div id="profile-picture-trigger" class="cursor-pointer relative group">
+                        <img id="profile-picture" src="{{ athlete_profile }}"
                             alt="Profile picture of {{ athlete_first_name }} {{ athlete_last_name }}"
-                            class="w-10 h-10 rounded-full object-cover border border-fitness-light-gray/50">
-                        <span class="absolute bottom-0 left-7 w-3.5 h-3.5 bg-fitness-green border border-white rounded-full flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 14a1 1 0 01-.7-.3l-4-4a1 1 0 111.4-1.4L10 11.6l3.3-3.3a1 1 0 111.4 1.4l-4 4a1 1 0 01-.7.3z" clip-rule="evenodd" />
+                            class="w-10 h-10 rounded-full object-cover border-2 border-transparent group-hover:border-fitness-green transition-all duration-200 shadow-sm">
+                        <span
+                            class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-fitness-green border-2 border-white rounded-full flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5 text-white" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
                             </svg>
                         </span>
                     </div>
                     <!-- Dropdown -->
                     <div id="profile-dropdown-menu"
-                        class="hidden absolute left-0 w-auto max-w-xs bg-white rounded-lg shadow-lg z-50 ring-1 ring-fitness-light-gray/50 border border-white/50 transform transition-all duration-200">
-                        <div class="px-4 py-2 text-sm text-fitness-dark-gray font-bold truncate">
-                            {{ athlete_first_name }} {{ athlete_last_name }}
+                        class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl z-50 ring-1 ring-black/5 border border-gray-100 transform origin-top-right transition-all duration-200">
+                        <div class="px-4 py-3 border-b border-gray-100">
+                            <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Signed in as</p>
+                            <p class="text-sm text-fitness-dark-gray font-bold truncate mt-0.5">{{ athlete_first_name }}
+                                {{
+                                athlete_last_name }}</p>
                         </div>
-                        <div class="border-t border-fitness-light-gray"></div>
-                        <button id="logout-button"
-                                class="block w-full text-left px-4 py-2 text-sm text-fitness-dark-gray rounded-md hover:bg-fitness-green hover:text-white transition-colors duration-200">
-                            Log out
-                        </button>
+
+                        <div class="py-1">
+                            <a href="/activities"
+                                class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-fitness-green transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="mr-3 h-5 w-5 text-gray-400 group-hover:text-fitness-green" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                                My Activities
+                            </a>
+                        </div>
+
+                        <div class="border-t border-gray-100 my-1"></div>
+
+                        <div class="py-1">
+                            <button id="logout-button"
+                                class="w-full text-left group flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="mr-3 h-5 w-5 text-red-400 group-hover:text-red-500" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                Log out
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Logo Center -->
-            <div class="text-center flex justify-center items-center">
-                <a href="/" class="text-2xl sm:text-3xl font-bold hover:opacity-80 transition-opacity">
-                    <span class="text-fitness-green">Fitness</span><span class="text-fitness-dark-gray">Overlays</span>
-                </a>
-            </div>
-
-            <!-- Activities Right -->
-            <div class="flex justify-end min-w-[40px]">
-                <a href="/activities" id="activities-header-btn"
-                class="bg-fitness-green text-white rounded-lg 
-                        px-2 sm:px-4 py-2 sm:py-2
-                        text-sm sm:text-base whitespace-nowrap
-                        flex items-center justify-center font-medium
-                        transform hover:scale-105 transition-all duration-200 
-                        drop-shadow-lg">
-                    Activities
-                </a>
+                {% endif %}
             </div>
         </nav>
-        {% else %}
-        <nav class="container mx-auto px-2 sm:px-4 py-3 sm:grid-cols-3 items-center max-w-[800px]">
-            <div class="text-center flex justify-center items-center">
-                <a href="/" class="text-2xl sm:text-3xl font-bold hover:opacity-80 transition-opacity">
-                    <span class="text-fitness-green">Fitness</span><span class="text-fitness-dark-gray">Overlays</span>
-                </a>
-            </div>
-        </nav>
-        {% endif %}
     </header>
 
     {% block content %}{% endblock %}
 
     <footer class="w-full mt-auto">
-      <div class="w-full bg-white/90 backdrop-blur-sm border-t border-fitness-light-gray">
-        <div class="text-fitness-dark-gray mx-auto w-full max-w-screen-lg py-6 space-y-6 text-center text-xs">
-    
-          <!-- FAQ / Help pill -->
-          <a href="/faq" 
-          class="mx-auto w-fit px-5 py-3 rounded-lg bg-fitness-light-green text-fitness-dark-gray text-base shadow-sm backdrop-blur-sm inline-flex items-center justify-center 
+        <div class="w-full bg-white/90 backdrop-blur-sm border-t border-fitness-light-gray">
+            <div class="text-fitness-dark-gray mx-auto w-full max-w-screen-lg py-6 space-y-6 text-center text-xs">
+
+                <!-- FAQ / Help pill -->
+                <a href="/faq" class="mx-auto w-fit px-5 py-3 rounded-lg bg-fitness-light-green text-fitness-dark-gray text-base shadow-sm backdrop-blur-sm inline-flex items-center justify-center 
                     transform transition-all duration-200 hover:scale-110 hover:drop-shadow-lg">
-            🤔 Have a question? Read the FAQ
-          </a>
-    
-          <!-- Social & Strava icons -->
-          <div class="flex justify-center items-center space-x-5">
-            <!-- Powered by Strava Logo -->
-            <img src="/static/images/api_logo_pwrdBy_strava_horiz_black.svg" alt="Powered by Strava API" class="h-5">
-    
-            <!-- Strava Link -->
-            <a href="https://strava.app.link/QzrdTbuZYSb" target="_blank" class="hover:text-fitness-dark-gray">
-              <svg class="w-5 h-5" width="24" height="24" viewBox="0 0 24 24" role="img" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
-                <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/>
-              </svg>
-              <span class="sr-only">Strava</span>
-            </a>
-    
-            <!-- X / Twitter -->
-            <a href="https://x.com/spyroslontos" target="_blank" class="hover:text-fitness-dark-gray">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path fill-rule="evenodd" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" clip-rule="evenodd"/>
-              </svg>
-              <span class="sr-only">X page</span>
-            </a>
-    
-            <!-- GitHub -->
-            <a href="https://github.com/spyroslontos" target="_blank" class="hover:text-fitness-dark-gray">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 .333A9.911 9.911 0 0 0 6.866 19.65c.5.092.678-.215.678-.477 0-.237-.01-1.017-.014-1.845-2.757.6-3.338-1.169-3.338-1.169a2.627 2.627 0 0 0-1.1-1.451c-.9-.615.07-.6.07-.6a2.084 2.084 0 0 1 1.518 1.021 2.11 2.11 0 0 0 2.884.823c.044-.503.268-.973.63-1.325-2.2-.25-4.516-1.1-4.516-4.9A3.832 3.832 0 0 1 4.7 7.068a3.56 3.56 0 0 1 .095-2.623s.832-.266 2.726 1.016a9.409 9.409 0 0 1 4.962 0c1.89-1.282 2.717-1.016 2.717-1.016.366.83.402 1.768.1 2.623a3.827 3.827 0 0 1 1.02 2.659c0 3.807-2.319 4.644-4.525 4.889a2.366 2.366 0 0 1 .673 1.834c0 1.326-.012 2.394-.012 2.72 0 .263.18.572.681.475A9.911 9.911 0 0 0 10 .333Z" clip-rule="evenodd"/>
-              </svg>
-              <span class="sr-only">GitHub</span>
-            </a>
-          </div>
-    
-          <!-- Copyright / License -->
-          <p class="text-[11px] text-gray-500">
-            © 2025 FitnessOverlays · 
-            <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" class="underline hover:text-gray-700 transition-colors">
-              AGPL-3.0
-            </a>
-            licensed
-          </p>
-    
+                    🤔 Have a question? Read the FAQ
+                </a>
+
+                <!-- Social & Strava icons -->
+                <div class="flex justify-center items-center space-x-5">
+                    <!-- Powered by Strava Logo -->
+                    <img src="/static/images/api_logo_pwrdBy_strava_horiz_black.svg" alt="Powered by Strava API"
+                        class="h-5">
+
+                    <!-- Strava Link -->
+                    <a href="https://strava.app.link/QzrdTbuZYSb" target="_blank" class="hover:text-fitness-dark-gray">
+                        <svg class="w-5 h-5" width="24" height="24" viewBox="0 0 24 24" role="img"
+                            xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                            <path
+                                d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
+                        </svg>
+                        <span class="sr-only">Strava</span>
+                    </a>
+
+                    <!-- X / Twitter -->
+                    <a href="https://x.com/spyroslontos" target="_blank" class="hover:text-fitness-dark-gray">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd"
+                                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span class="sr-only">X page</span>
+                    </a>
+
+                    <!-- GitHub -->
+                    <a href="https://github.com/spyroslontos" target="_blank" class="hover:text-fitness-dark-gray">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 .333A9.911 9.911 0 0 0 6.866 19.65c.5.092.678-.215.678-.477 0-.237-.01-1.017-.014-1.845-2.757.6-3.338-1.169-3.338-1.169a2.627 2.627 0 0 0-1.1-1.451c-.9-.615.07-.6.07-.6a2.084 2.084 0 0 1 1.518 1.021 2.11 2.11 0 0 0 2.884.823c.044-.503.268-.973.63-1.325-2.2-.25-4.516-1.1-4.516-4.9A3.832 3.832 0 0 1 4.7 7.068a3.56 3.56 0 0 1 .095-2.623s.832-.266 2.726 1.016a9.409 9.409 0 0 1 4.962 0c1.89-1.282 2.717-1.016 2.717-1.016.366.83.402 1.768.1 2.623a3.827 3.827 0 0 1 1.02 2.659c0 3.807-2.319 4.644-4.525 4.889a2.366 2.366 0 0 1 .673 1.834c0 1.326-.012 2.394-.012 2.72 0 .263.18.572.681.475A9.911 9.911 0 0 0 10 .333Z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span class="sr-only">GitHub</span>
+                    </a>
+                </div>
+
+                <!-- Copyright / License -->
+                <p class="text-[11px] text-gray-500">
+                    © 2025 FitnessOverlays
+                </p>
+
+            </div>
         </div>
-      </div>
     </footer>
 
     {% block script %}{% endblock %}
 </body>
+
 </html>
