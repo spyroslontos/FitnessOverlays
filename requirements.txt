@@ -16,3 +16,6 @@ python-dotenv # Secure environment variable handling
 
 # WSGI Server for Production
 gunicorn
+
+# Redis support for flask-limiter
+redis
