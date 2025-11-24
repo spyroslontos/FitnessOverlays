@@ -343,7 +343,7 @@ def after_request(response: Response) -> Response:
         'accelerometer=(), autoplay=(), camera=(), cross-origin-isolated=(), display-capture=(), '
         'encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), '
         'magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), '
-        'publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()'
+        'publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), xr-spatial-tracking=()'
     )
 
     response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
@@ -454,7 +454,7 @@ def rate_limit_unknown_paths():
     allowed_paths = [
         "/favicon.ico",
         "/robots.txt",
-        "/llms.txt"
+        "/llms.txt",
         "/sitemap.xml",
         "/static/",
     ]
