@@ -1,118 +1,128 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container mx-auto px-4 py-8 max-w-4xl flex-grow">
-        <h1 class="text-3xl font-bold text-center mb-8 text-fitness-dark-gray">Frequently Asked Questions</h1>
-    
-        <div class="space-y-4">
+<div class="container mx-auto px-4 py-8 max-w-4xl flex-grow">
+    <h1 class="text-3xl font-bold text-center mb-8 text-fitness-dark-gray">Frequently Asked Questions</h1>
+
+    <div class="space-y-4">
         <!-- FAQ item -->
         <div class="bg-white rounded-lg shadow-md p-4">
             <button type="button"
-                    class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
-                    onclick="toggleFAQ(this)">
-            What is FitnessOverlays?
-            <span class="ml-2 text-fitness-green">+</span>
+                class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                onclick="toggleFAQ(this)">
+                What is FitnessOverlays?
+                <span class="ml-2 text-fitness-green">+</span>
             </button>
             <div class="mt-2 text-gray-600 hidden">
-            FitnessOverlays is a tool that creates customizable, Instagram-ready overlays for your Strava activities. It allows you to showcase your fitness achievements with transparent backgrounds, perfect for social media sharing.
+                FitnessOverlays is a tool that creates customizable, Instagram-ready overlays for your Strava
+                activities. It allows you to showcase your fitness achievements with transparent backgrounds, perfect
+                for social media sharing.
             </div>
         </div>
-    
+
         <div class="bg-white rounded-lg shadow-md p-4">
             <button type="button"
-                    class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
-                    onclick="toggleFAQ(this)">
-            How does it work?
-            <span class="ml-2 text-fitness-green">+</span>
+                class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                onclick="toggleFAQ(this)">
+                How does it work?
+                <span class="ml-2 text-fitness-green">+</span>
             </button>
             <div class="mt-2 text-gray-600 hidden">
-            Simply connect your Strava account, select an activity, and customize your overlay with various templates, colors, and stats. Once you're happy with the design, you can download it as a transparent PNG ready to share on Instagram or other platforms.
+                Simply connect your Strava account, select an activity, and customize your overlay with various
+                templates, colors, and stats. Once you're happy with the design, you can download it as a transparent
+                PNG ready to share on Instagram or other platforms.
             </div>
         </div>
-    
+
         <div class="bg-white rounded-lg shadow-md p-4">
             <button type="button"
-                    class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
-                    onclick="toggleFAQ(this)">
-            Is it free?
-            <span class="ml-2 text-fitness-green">+</span>
+                class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                onclick="toggleFAQ(this)">
+                Is it free?
+                <span class="ml-2 text-fitness-green">+</span>
             </button>
             <div class="mt-2 text-gray-600 hidden">
-            Yes! FitnessOverlays is completely free to use. We believe in making fitness visualization accessible to everyone.
+                Yes! FitnessOverlays is completely free to use. We believe in making fitness visualization accessible to
+                everyone.
             </div>
         </div>
-    
+
         <div class="bg-white rounded-lg shadow-md p-4">
             <button type="button"
-                    class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
-                    onclick="toggleFAQ(this)">
-            What data does it access?
-            <span class="ml-2 text-fitness-green">+</span>
+                class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                onclick="toggleFAQ(this)">
+                What data does it access?
+                <span class="ml-2 text-fitness-green">+</span>
             </button>
             <div class="mt-2 text-gray-600 hidden">
-            We ask for read-only access to your Strava activities and some info from your profile to make your experience better. We don’t change anything on your account.
+                We ask for read-only access to your Strava activities and some info from your profile to make your
+                experience better. We don’t change anything on your account.
             </div>
         </div>
-    
+
         <div class="bg-white rounded-lg shadow-md p-4">
             <button type="button"
-                    class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
-                    onclick="toggleFAQ(this)">
-            How do I disconnect my Strava account?
-            <span class="ml-2 text-fitness-green">+</span>
+                class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                onclick="toggleFAQ(this)">
+                How do I disconnect my Strava account?
+                <span class="ml-2 text-fitness-green">+</span>
             </button>
             <div class="mt-2 text-gray-600 hidden">
-            To completely disconnect FitnessOverlays from your Strava account, you need to revoke access in your Strava settings:
-            <ol class="list-decimal list-inside mt-2 space-y-1">
-                <li>Go to your Strava account settings</li>
-                <li>Navigate to "My Apps"</li>
-                <li>Find FitnessOverlays in the list</li>
-                <li>Click "Revoke Access"</li>
-            </ol>
-            <p class="mt-2">Note: Simply logging out of FitnessOverlays only ends your session but doesn't revoke the app's access to your Strava data.</p>
+                To completely disconnect FitnessOverlays from your Strava account, you need to revoke access in your
+                Strava settings:
+                <ol class="list-decimal list-inside mt-2 space-y-1">
+                    <li>Go to your Strava account settings</li>
+                    <li>Navigate to "My Apps"</li>
+                    <li>Find FitnessOverlays in the list</li>
+                    <li>Click "Revoke Access"</li>
+                </ol>
+                <p class="mt-2">Note: Simply logging out of FitnessOverlays only ends your session but doesn't revoke
+                    the app's access to your Strava data.</p>
             </div>
         </div>
-    
+
         <div class="bg-white rounded-lg shadow-md p-4">
             <button type="button"
-                    class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
-                    onclick="toggleFAQ(this)">
-            Can I customize the overlays?
-            <span class="ml-2 text-fitness-green">+</span>
+                class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                onclick="toggleFAQ(this)">
+                Can I customize the overlays?
+                <span class="ml-2 text-fitness-green">+</span>
             </button>
             <div class="mt-2 text-gray-600 hidden">
-            Yes! You can customize various aspects of your overlays including colors, fonts, stats displayed, and layout. We're constantly adding new customization options based on user feedback.
+                Yes! You can customize various aspects of your overlays including colors, fonts, stats displayed, and
+                layout. We're constantly adding new customization options based on user feedback.
             </div>
         </div>
-    
+
         <div class="bg-white rounded-lg shadow-md p-4">
             <button type="button"
-                    class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
-                    onclick="toggleFAQ(this)">
-            How do I report a bug?
-            <span class="ml-2 text-fitness-green">+</span>
+                class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                onclick="toggleFAQ(this)">
+                How do I report a bug?
+                <span class="ml-2 text-fitness-green">+</span>
             </button>
             <div class="mt-2 text-gray-600 hidden">
-            If you encounter any issues, please report them on our
-            <a href="https://github.com/spyroslontos/FitnessOverlays" target="_blank" class="text-fitness-green hover:underline">GitHub repository</a>.
-            We appreciate your help in making FitnessOverlays better!
+                If you encounter any issues, please report them on our
+                <a href="https://github.com/spyroslontos/FitnessOverlays" target="_blank"
+                    class="text-fitness-green hover:underline">GitHub repository</a>.
+                We appreciate your help in making FitnessOverlays better!
             </div>
-        </div>
         </div>
     </div>
-{% endblock %} 
+</div>
+{% endblock %}
 
 {% block script %}
-    <script>
-        function toggleFAQ(button) {
-            const answer = button.nextElementSibling;
-            answer.classList.toggle('hidden');
-            const icon = button.querySelector('span');
-            if (answer.classList.contains('hidden')) {
+<script>
+    function toggleFAQ(button) {
+        const answer = button.nextElementSibling;
+        answer.classList.toggle('hidden');
+        const icon = button.querySelector('span');
+        if (answer.classList.contains('hidden')) {
             icon.textContent = '+';
-            } else {
+        } else {
             icon.textContent = '−';
-            }
         }
-    </script>
+    }
+</script>
 {% endblock %}

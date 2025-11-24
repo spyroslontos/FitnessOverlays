@@ -1,128 +1,137 @@
 {% extends "base.html" %}
 
 {% block style %}
-    <style>
-        .spinner {
-            animation: spin 1s linear infinite;
+<style>
+    .spinner {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
         }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+
+        to {
+            transform: rotate(360deg);
         }
-        .sync-button-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-        .sync-progress {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.2);
-            transition: width 1s linear;
-            border-radius: 0.5rem;
-            pointer-events: none;
-        }
-    </style>
+    }
+
+    .sync-button-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .sync-progress {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.2);
+        transition: width 1s linear;
+        border-radius: 0.5rem;
+        pointer-events: none;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-    <main class="flex-1 container mx-auto p-4">
-        <div class="max-w-[900px] mx-auto space-y-4">
-            <div class="space-y-2">
-                <div class="sync-button-wrapper inline-block" id="sync-wrapper">
-                    <div class="sync-progress" id="sync-progress"></div>
-                    <button id="sync-button" 
-                            class="px-4 py-2 bg-fitness-orange text-white rounded-lg 
+<main class="flex-1 container mx-auto p-4">
+    <div class="max-w-[900px] mx-auto space-y-4">
+        <div class="space-y-2">
+            <div class="sync-button-wrapper inline-block" id="sync-wrapper">
+                <div class="sync-progress" id="sync-progress"></div>
+                <button id="sync-button" class="px-4 py-2 bg-fitness-orange text-white rounded-lg 
                                     flex items-center gap-2 transition-colors
                                     disabled:opacity-50 disabled:cursor-not-allowed">
-                        <svg id="sync-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span id="sync-text">Sync Activities</span>
-                    </button>
-            
-                    <!-- Sync bar directly below button, will match its width via JS -->
-                    <div id="sync-bar-container" class="bg-fitness-gray rounded-lg h-2 mt-0.5 hidden">
-                        <div id="sync-bar" class="bg-fitness-green rounded-lg h-2" style="width:0%"></div>
-                    </div>
-                </div>
-            
-                <div class="flex flex-col text-sm text-fitness-gray">
-                    <div>Last Updated: <span id="last-sync">...</span></div>
+                    <svg id="sync-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span id="sync-text">Sync Activities</span>
+                </button>
+
+                <!-- Sync bar directly below button, will match its width via JS -->
+                <div id="sync-bar-container" class="bg-fitness-gray rounded-lg h-2 mt-0.5 hidden">
+                    <div id="sync-bar" class="bg-fitness-green rounded-lg h-2" style="width:0%"></div>
                 </div>
             </div>
-            <!-- Activities Grid -->
-            <div id="activities-grid" class="space-y-4"></div>
-        </div>
-    </main>
 
-        <!-- Load More Button -->
-        <div id="load-more-container" class="flex justify-center pb-4">
-            <button id="load-more-button"
-            class="px-4 py-2 bg-fitness-green text-white rounded-lg flex items-center gap-2 hover:bg-fitness-dark-green transition-colors hidden">
-                Load More
-            </button>
+            <div class="flex flex-col text-sm text-fitness-gray">
+                <div>Last Updated: <span id="last-sync">...</span></div>
+            </div>
         </div>
+        <!-- Activities Grid -->
+        <div id="activities-grid" class="space-y-4"></div>
+    </div>
+</main>
+
+<!-- Load More Button -->
+<div id="load-more-container" class="flex justify-center pb-4">
+    <button id="load-more-button"
+        class="px-4 py-2 bg-fitness-green text-white rounded-lg flex items-center gap-2 hover:bg-fitness-dark-green transition-colors hidden">
+        Load More
+    </button>
+</div>
 {% endblock %}
 
 
 {% block script %}
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
 
-            const activitiesGrid = document.getElementById('activities-grid');
-            const loadMoreButton = document.getElementById('load-more-button');
-            const syncButton = document.getElementById('sync-button');
-            let displayedCount = 0;
-            const itemsPerPage = 5;
-            let allActivities = [];
-            let cooldownIntervalId;
+        const activitiesGrid = document.getElementById('activities-grid');
+        const loadMoreButton = document.getElementById('load-more-button');
+        const syncButton = document.getElementById('sync-button');
+        let displayedCount = 0;
+        const itemsPerPage = 5;
+        let allActivities = [];
+        let cooldownIntervalId;
 
-            function createActivityTile(activity) {
-                let gradient, mainLabel, mainValue;
+        function createActivityTile(activity) {
+            let gradient, mainLabel, mainValue;
 
-                switch (activity.type) {
-                    case 'Run':
-                        gradient = 'from-green-400/90 to-green-600/90';
-                        mainLabel = 'Avg Pace';
-                        mainValue = formatPace(activity.moving_time, activity.distance);
-                        break;
-                    case 'Ride':
-                        gradient = 'from-orange-400/90 to-orange-600/90';
-                        mainLabel = 'Avg Speed';
-                        mainValue = formatSpeed(activity.distance, activity.moving_time);
-                        break;
-                    case 'Swim':
-                        gradient = 'from-blue-400/90 to-blue-600/90';
-                        mainLabel = 'Avg Pace';
-                        mainValue = formatSwimPace(activity.moving_time, activity.distance);
-                        break;
-                    case 'Walk':
-                    case 'Hike':
-                        gradient = 'from-lime-400/90 to-lime-600/90';
-                        mainLabel = 'Avg Pace';
-                        mainValue = formatPace(activity.moving_time, activity.distance);
-                        break;
-                    default:
-                        gradient = 'from-gray-400/90 to-gray-600/90';
-                        if (activity.average_heartrate) {
-                            mainLabel = 'Avg HR';
-                            mainValue = `${Math.round(activity.average_heartrate)} bpm`;
-                        } else if (activity.distance > 0) {
-                            mainLabel = 'Distance';
-                            mainValue = formatDistance(activity.distance);
-                        } else {
-                            mainLabel = 'Duration';
-                            mainValue = formatDuration(activity.moving_time);
-                        }
-                }
+            switch (activity.type) {
+                case 'Run':
+                    gradient = 'from-green-400/90 to-green-600/90';
+                    mainLabel = 'Avg Pace';
+                    mainValue = formatPace(activity.moving_time, activity.distance);
+                    break;
+                case 'Ride':
+                    gradient = 'from-orange-400/90 to-orange-600/90';
+                    mainLabel = 'Avg Speed';
+                    mainValue = formatSpeed(activity.distance, activity.moving_time);
+                    break;
+                case 'Swim':
+                    gradient = 'from-blue-400/90 to-blue-600/90';
+                    mainLabel = 'Avg Pace';
+                    mainValue = formatSwimPace(activity.moving_time, activity.distance);
+                    break;
+                case 'Walk':
+                case 'Hike':
+                    gradient = 'from-lime-400/90 to-lime-600/90';
+                    mainLabel = 'Avg Pace';
+                    mainValue = formatPace(activity.moving_time, activity.distance);
+                    break;
+                default:
+                    gradient = 'from-gray-400/90 to-gray-600/90';
+                    if (activity.average_heartrate) {
+                        mainLabel = 'Avg HR';
+                        mainValue = `${Math.round(activity.average_heartrate)} bpm`;
+                    } else if (activity.distance > 0) {
+                        mainLabel = 'Distance';
+                        mainValue = formatDistance(activity.distance);
+                    } else {
+                        mainLabel = 'Duration';
+                        mainValue = formatDuration(activity.moving_time);
+                    }
+            }
 
-                const tile = document.createElement('div');
-                tile.className = 'bg-gray-100 rounded-2xl shadow hover:shadow-lg transition-all duration-300 overflow-hidden group border border-fitness-light-gray cursor-pointer';
-                tile.onclick = () => saveActivityAndRedirect(activity);
+            const tile = document.createElement('div');
+            tile.className = 'bg-gray-100 rounded-2xl shadow hover:shadow-lg transition-all duration-300 overflow-hidden group border border-fitness-light-gray cursor-pointer';
+            tile.onclick = () => saveActivityAndRedirect(activity);
 
-                tile.innerHTML = `
+            tile.innerHTML = `
                     <div class="relative">
                         <div class="bg-gradient-to-r ${gradient} px-5 py-4 text-zinc-800">
                             <div class="flex items-start justify-between">
@@ -161,192 +170,192 @@
                     </div>
                 `;
 
-                return tile;
-            }
+            return tile;
+        }
 
-            function formatDate(dateStr) {
-                const date = new Date(dateStr);
-                const formattedDate = date.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                });
-                const formattedTime = date.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true,
-                });
-                return `${formattedDate}<br>${formattedTime}`;
-            }
-    
-            function formatDuration(seconds) {
-                const hours = Math.floor(seconds / 3600);
-                const minutes = Math.floor((seconds % 3600) / 60);
-                const remainingSeconds = seconds % 60;
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            });
+            const formattedTime = date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+            });
+            return `${formattedDate}<br>${formattedTime}`;
+        }
 
-                if (hours > 0) {
-                    return `${hours}h ${minutes}m`;
-                }
-                return `${minutes}m ${remainingSeconds}s`;
-            }
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const remainingSeconds = seconds % 60;
 
-            function formatDistance(meters) {
-                return (meters / 1000).toFixed(2) + ' km';
+            if (hours > 0) {
+                return `${hours}h ${minutes}m`;
             }
-    
-            function formatPace(seconds, distance) {
-                if (!distance) return "0:00";
-                const paceInSeconds = seconds / (distance / 1000);
-                const minutes = Math.floor(paceInSeconds / 60);
-                const remainingSeconds = Math.ceil(paceInSeconds % 60);
-                return `${minutes}:${remainingSeconds.toString().padStart(2, '0')} /km`;
-            }
+            return `${minutes}m ${remainingSeconds}s`;
+        }
 
-            function formatSpeed(distance, timeInSeconds) {
-                if (!distance || !timeInSeconds) return "0.0 km/h";
-                const speedInKmh = (distance / 1000) / (timeInSeconds / 3600);
-                return `${speedInKmh.toFixed(1)} km/h`;
-            }
+        function formatDistance(meters) {
+            return (meters / 1000).toFixed(2) + ' km';
+        }
 
-            function formatSwimPace(seconds, distance) {
-                if (!distance || distance < 100) return 'N/A';
-                const pacePer100m = seconds / (distance / 100);
-                const minutes = Math.floor(pacePer100m / 60);
-                const secs = Math.round(pacePer100m % 60);
-                return `${minutes}:${secs.toString().padStart(2, '0')} /100m`;
-            }
+        function formatPace(seconds, distance) {
+            if (!distance) return "0:00";
+            const paceInSeconds = seconds / (distance / 1000);
+            const minutes = Math.floor(paceInSeconds / 60);
+            const remainingSeconds = Math.ceil(paceInSeconds % 60);
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')} /km`;
+        }
 
-            function formatSyncTime(timestamp) {
-                const diffSec = Math.floor((Date.now() - timestamp) / 1000);
-                if (diffSec < 60) return 'Just now';
-                const min = Math.floor(diffSec / 60);
-                        if (min < 60) return min === 1 ? '1 minute ago' : `${min} minutes ago`;
-                        const hr = Math.floor(min / 60);
-                        if (hr < 24) return hr === 1 ? '1 hour ago' : `${hr} hours ago`;
-                        const d = Math.floor(hr / 24);
-                        return d === 1 ? '1 day ago' : `${d} days ago`;
-            }
+        function formatSpeed(distance, timeInSeconds) {
+            if (!distance || !timeInSeconds) return "0.0 km/h";
+            const speedInKmh = (distance / 1000) / (timeInSeconds / 3600);
+            return `${speedInKmh.toFixed(1)} km/h`;
+        }
 
-            function saveActivityAndRedirect(activity) {
-                // Prevent multiple clicks
-                if (event.currentTarget.classList.contains('loading')) return;
-                
-                // Show loading state only on the arrow icon
-                const arrowIcon = event.currentTarget.querySelector('.w-9.h-9');
-                if (!arrowIcon) return;
-                
-                const originalContent = arrowIcon.innerHTML;
-                arrowIcon.innerHTML = `
+        function formatSwimPace(seconds, distance) {
+            if (!distance || distance < 100) return 'N/A';
+            const pacePer100m = seconds / (distance / 100);
+            const minutes = Math.floor(pacePer100m / 60);
+            const secs = Math.round(pacePer100m % 60);
+            return `${minutes}:${secs.toString().padStart(2, '0')} /100m`;
+        }
+
+        function formatSyncTime(timestamp) {
+            const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+            if (diffSec < 60) return 'Just now';
+            const min = Math.floor(diffSec / 60);
+            if (min < 60) return min === 1 ? '1 minute ago' : `${min} minutes ago`;
+            const hr = Math.floor(min / 60);
+            if (hr < 24) return hr === 1 ? '1 hour ago' : `${hr} hours ago`;
+            const d = Math.floor(hr / 24);
+            return d === 1 ? '1 day ago' : `${d} days ago`;
+        }
+
+        function saveActivityAndRedirect(activity) {
+            // Prevent multiple clicks
+            if (event.currentTarget.classList.contains('loading')) return;
+
+            // Show loading state only on the arrow icon
+            const arrowIcon = event.currentTarget.querySelector('.w-9.h-9');
+            if (!arrowIcon) return;
+
+            const originalContent = arrowIcon.innerHTML;
+            arrowIcon.innerHTML = `
                     <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                 `;
-                event.currentTarget.classList.add('loading');
+            event.currentTarget.classList.add('loading');
 
-                // Store just the activity ID and redirect
-                sessionStorage.setItem('selectedActivityId', activity.id);
-                window.location.href = '/customize';
-            }
-    
-            window.saveActivityAndRedirect = saveActivityAndRedirect;
+            // Store just the activity ID and redirect
+            sessionStorage.setItem('selectedActivityId', activity.id);
+            window.location.href = '/customize';
+        }
 
-            function renderMoreActivities() {
-                const next = allActivities.slice(displayedCount, displayedCount + itemsPerPage);
-                next.forEach(activity => activitiesGrid.appendChild(createActivityTile(activity)));
-                displayedCount += next.length;
-                loadMoreButton.classList.toggle('hidden', displayedCount >= allActivities.length);
-            }
+        window.saveActivityAndRedirect = saveActivityAndRedirect;
 
-            let lastSyncedTimestamp = null;
+        function renderMoreActivities() {
+            const next = allActivities.slice(displayedCount, displayedCount + itemsPerPage);
+            next.forEach(activity => activitiesGrid.appendChild(createActivityTile(activity)));
+            displayedCount += next.length;
+            loadMoreButton.classList.toggle('hidden', displayedCount >= allActivities.length);
+        }
 
-            function syncActivities(method = 'GET') {
-                const icon = document.getElementById('sync-icon');
-                icon.classList.add('spinner');
+        let lastSyncedTimestamp = null;
 
-                const minSpinDuration = 1000;
-                const startTime = Date.now();
+        function syncActivities(method = 'GET') {
+            const icon = document.getElementById('sync-icon');
+            icon.classList.add('spinner');
 
-                fetch('/api/activities/sync', { method, credentials: 'include' })
-                    .then(res => res.json())
-                    .then(data => {
-                        console.log('Sync response:', data);
+            const minSpinDuration = 1000;
+            const startTime = Date.now();
 
-                        if (data.activities) {
-                            allActivities = data.activities;
-                            activitiesGrid.innerHTML = '';
-                            displayedCount = 0;
-                            renderMoreActivities();
-                            loadMoreButton.classList.toggle('hidden', displayedCount >= allActivities.length);
-                        }
+            fetch('/api/activities/sync', { method, credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Sync response:', data);
 
-                        if (data.last_synced) {
-                            lastSyncedTimestamp = new Date(data.last_synced).getTime();
-                            updateDisplay();
-                        } else {
-                            document.getElementById('last-sync').textContent = 'Never synced';
-                        }
-
-                        if (data.cooldown) {
-                            if (data.cooldown.active) {
-                                startCooldownBar(data.cooldown.seconds_remaining, data.cooldown.total_cooldown);
-                            } else {
-                                hideCooldownBar();
-                            }
-                        }
-                    })
-                    .catch(() => {
-                        document.getElementById('last-sync').textContent = 'Error fetching sync time';
-                    })
-                    .finally(() => {
-                        const elapsed = Date.now() - startTime;
-                        const remaining = Math.max(0, minSpinDuration - elapsed);
-                        setTimeout(() => {
-                            icon.classList.remove('spinner');
-                        }, remaining);
-                    });
-            }
-
-            function updateDisplay() {
-                if (lastSyncedTimestamp) {
-                    document.getElementById('last-sync').textContent = formatSyncTime(lastSyncedTimestamp);
-                }
-            }
-
-            function startCooldownBar(seconds_remaining, total_cooldown) {
-                clearInterval(cooldownIntervalId);
-                const container = document.getElementById('sync-bar-container');
-                const bar = document.getElementById('sync-bar');
-                let sec = seconds_remaining;
-                if (!container || !bar) return;
-
-                container.classList.remove('hidden');
-                const updateBar = () => {
-                    const progress = Math.round(((total_cooldown - sec) / total_cooldown) * 100);
-                    bar.style.width = `${progress}%`;
-                    if (sec <= 0) {
-                        clearInterval(cooldownIntervalId);
-                        container.classList.add('hidden');
+                    if (data.activities) {
+                        allActivities = data.activities;
+                        activitiesGrid.innerHTML = '';
+                        displayedCount = 0;
+                        renderMoreActivities();
+                        loadMoreButton.classList.toggle('hidden', displayedCount >= allActivities.length);
                     }
-                    sec--;
-                };
-                updateBar();
-                cooldownIntervalId = setInterval(updateBar, 1000);
+
+                    if (data.last_synced) {
+                        lastSyncedTimestamp = new Date(data.last_synced).getTime();
+                        updateDisplay();
+                    } else {
+                        document.getElementById('last-sync').textContent = 'Never synced';
+                    }
+
+                    if (data.cooldown) {
+                        if (data.cooldown.active) {
+                            startCooldownBar(data.cooldown.seconds_remaining, data.cooldown.total_cooldown);
+                        } else {
+                            hideCooldownBar();
+                        }
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('last-sync').textContent = 'Error fetching sync time';
+                })
+                .finally(() => {
+                    const elapsed = Date.now() - startTime;
+                    const remaining = Math.max(0, minSpinDuration - elapsed);
+                    setTimeout(() => {
+                        icon.classList.remove('spinner');
+                    }, remaining);
+                });
+        }
+
+        function updateDisplay() {
+            if (lastSyncedTimestamp) {
+                document.getElementById('last-sync').textContent = formatSyncTime(lastSyncedTimestamp);
             }
+        }
 
-            function hideCooldownBar() {
-                clearInterval(cooldownIntervalId);
-                const container = document.getElementById('sync-bar-container');
-                if (container) container.classList.add('hidden');
-            }
+        function startCooldownBar(seconds_remaining, total_cooldown) {
+            clearInterval(cooldownIntervalId);
+            const container = document.getElementById('sync-bar-container');
+            const bar = document.getElementById('sync-bar');
+            let sec = seconds_remaining;
+            if (!container || !bar) return;
 
-            // Event Listeners
-            syncButton.addEventListener('click', () => syncActivities('GET'));
-            loadMoreButton.addEventListener('click', renderMoreActivities);
+            container.classList.remove('hidden');
+            const updateBar = () => {
+                const progress = Math.round(((total_cooldown - sec) / total_cooldown) * 100);
+                bar.style.width = `${progress}%`;
+                if (sec <= 0) {
+                    clearInterval(cooldownIntervalId);
+                    container.classList.add('hidden');
+                }
+                sec--;
+            };
+            updateBar();
+            cooldownIntervalId = setInterval(updateBar, 1000);
+        }
 
-            // Initial Load
-            syncActivities('GET');
-            setInterval(updateDisplay, 60000); // Update sync text every minute
-        });
-    </script>
+        function hideCooldownBar() {
+            clearInterval(cooldownIntervalId);
+            const container = document.getElementById('sync-bar-container');
+            if (container) container.classList.add('hidden');
+        }
+
+        // Event Listeners
+        syncButton.addEventListener('click', () => syncActivities('GET'));
+        loadMoreButton.addEventListener('click', renderMoreActivities);
+
+        // Initial Load
+        syncActivities('GET');
+        setInterval(updateDisplay, 60000); // Update sync text every minute
+    });
+</script>
 {% endblock %}
