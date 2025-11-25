@@ -1,5 +1,5 @@
 # FitnessOverlays
-> Web app that creates Instagram-ready overlays from Strava workout data.
+> Web app that creates Instagram-ready overlays from Strava workout data. For common questions like disconnecting from Strava or privacy details, visit the [FAQ section on our homepage](https://fitnessoverlays.com/#faq).
 
 ## Getting Started
 - [Installation](NOTES.md): Setup with Python/Flask, Docker, and Tailwind CSS
@@ -12,8 +12,7 @@
 - [Developer Guide](NOTES.md): Commands for local dev, Docker, Tailwind builds, Strava webhooks
 - [Project Overview](README.md): Supported metrics (distance, time, pace, heart rate, calories, elevation)
 
-## Support
-- [FAQ](https://fitnessoverlays.com/faq): Common questions about Strava integration and privacy
 
-## Optional
+
+## License
 - [License](LICENSE): AGPL-3.0 license 

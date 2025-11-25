@@ -55,7 +55,7 @@ Available metrics depend on the activity and include:
 
 ## ❓ FAQ
 
-For common questions like disconnecting from Strava or privacy details, visit the [FAQ page](https://fitnessoverlays.com/faq).
+For common questions like disconnecting from Strava or privacy details, visit the [FAQ section on our homepage](https://fitnessoverlays.com/#faq).
 
 ---
 

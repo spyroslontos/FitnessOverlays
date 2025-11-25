@@ -15,7 +15,7 @@ Allow: /static/images/
 Allow: /favicon.ico
 Allow: /sitemap.xml
 Allow: /robots.txt
-Allow: /faq
+
 Allow: /demo
 Allow: /
 
@@ -36,7 +36,7 @@ Allow: /static/images/
 Allow: /favicon.ico
 Allow: /sitemap.xml
 Allow: /robots.txt
-Allow: /faq
+
 Allow: /demo
 
 # ================================
@@ -56,7 +56,7 @@ Allow: /static/images/
 Allow: /favicon.ico
 Allow: /sitemap.xml
 Allow: /robots.txt
-Allow: /faq
+
 Allow: /demo
 
 # ================================
