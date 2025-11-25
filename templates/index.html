@@ -50,20 +50,50 @@
                         alt="Connect your Strava account to create your customized overlays"
                         class="h-14 sm:h-16 drop-shadow-lg rounded-lg transform hover:scale-110 transition-transform duration-200 cursor-pointer ">
                 </div>
-                <p class="text-sm text-fitness-gray text-center mt-2 select-none">
+                <p class="text-sm text-fitness-gray text-center mt-1 select-none">
                     Completely free. Just log in with Strava.
                 </p>
+
+                <!-- Social Proof -->
+                <div class="flex items-center justify-center mt-4 space-x-3 fade-in opacity-0"
+                    style="animation-delay: 0.2s;">
+                    <div class="flex -space-x-3">
+                        <div
+                            class="w-10 h-10 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm">
+                            <i class="fas fa-user text-gray-300 text-sm"></i>
+                        </div>
+                        <div
+                            class="w-10 h-10 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center overflow-hidden shadow-sm">
+                            <i class="fas fa-user text-gray-400 text-sm"></i>
+                        </div>
+                        <div
+                            class="w-10 h-10 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center overflow-hidden shadow-sm">
+                            <i class="fas fa-user text-gray-500 text-sm"></i>
+                        </div>
+                        <div
+                            class="w-10 h-10 rounded-full border-2 border-white bg-gray-400 flex items-center justify-center overflow-hidden shadow-sm">
+                            <i class="fas fa-user text-gray-600 text-sm"></i>
+                        </div>
+                        <div
+                            class="w-10 h-10 rounded-full border-2 border-white bg-fitness-gray flex items-center justify-center overflow-hidden shadow-sm">
+                            <span class="text-white text-xs font-bold">+</span>
+                        </div>
+                    </div>
+                    <div class="text-sm font-medium text-fitness-gray">
+                        Loved by <span class="font-bold text-fitness-dark-gray">{{ user_count }}+</span> athletes
+                    </div>
+                </div>
             </div>
-            <div class="text-fitness-gray text-sm my-4 text-center select-none">or</div>
-            <div class="text-center">
+
+            <div class="text-center mt-8">
                 <div>
-                    <a href="/demo" class="bg-gradient-to-br from-fitness-green to-fitness-light-green text-fitness-dark-gray font-bold py-3 px-6 text-base rounded-xl
+                    <a href="/demo" class="bg-fitness-green text-white font-bold py-3 px-6 text-base rounded-xl
                                         transform hover:scale-110 transition-all duration-200 
-                                        drop-shadow-lg border border-fitness-green
+                                        drop-shadow-lg
                                         inline-flex items-center space-x-2">
                         <span>Try Demo</span>
                     </a>
-                    <p class="text-xs text-fitness-gray text-center mt-2 select-none">
+                    <p class="text-xs text-fitness-gray text-center mt-1 select-none">
                         See how it works
                     </p>
                 </div>
@@ -71,18 +101,12 @@
         </div>
         {% endif %}
 
-        <!-- Toast -->
-        <div id="toast"
-            class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-fitness-green text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 pointer-events-none z-50 opacity-0">
-            Copied to clipboard!
-        </div>
-
         <div class="w-full flex flex-col items-center">
             <div class="w-full max-w-2xl px-4 sm:px-6">
                 <h3 class="text-3xl sm:text-4xl font-extrabold text-center text-fitness-dark-gray mb-8 tracking-tight">
                     Overlay Showcase</h3>
 
-                <div id="default-carousel" class="relative mx-auto w-full max-w-[350px] px-4 sm:px-0"
+                <div id="default-carousel" class="relative mx-auto w-full max-w-[300px] px-4 sm:px-0"
                     data-carousel="slide" data-carousel-interval="5000">
                     <div class="relative overflow-hidden rounded-lg drop-shadow-lg aspect-[9/16]">
                         <div class="hidden duration-700 ease-in-out" data-carousel-item="active">
@@ -201,15 +225,15 @@
         </div>
     </section>
 
-    <section class="w-full py-8 md:py-12">
+    <section class="w-full py-8 md:py-12 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center">
+            <div class="text-center mb-8">
                 <h2 class="text-4xl md:text-5xl font-bold text-fitness-dark-gray">Top Features of Our Strava Overlay
                     Generator</h2>
-                <p class="my-4 text-lg text-fitness-gray">Everything you need to make your Strava stats pop.</p>
+                <p class="mt-4 text-lg text-fitness-gray">Everything you need to make your Strava stats pop.</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-center">
-                <div class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div class="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition duration-300">
                     <div
                         class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
                         <i class="fas fa-image"></i>
@@ -217,7 +241,7 @@
                     <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Transparent Backgrounds</h3>
                     <p class="text-fitness-gray">Your overlays blend seamlessly with any Instagram Story background.</p>
                 </div>
-                <div class="p-4">
+                <div class="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition duration-300">
                     <div
                         class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
                         <i class="fas fa-text-height"></i>
@@ -225,7 +249,7 @@
                     <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Full Customization</h3>
                     <p class="text-fitness-gray">Control stats, colors, sizes, and layout. Make it truly yours.</p>
                 </div>
-                <div class="p-4">
+                <div class="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition duration-300">
                     <div
                         class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
                         <i class="fas fa-bolt"></i>
@@ -237,6 +261,166 @@
             </div>
         </div>
     </section>
+
+    <section id="faq" class="w-full py-8 md:py-12 bg-white scroll-mt-20">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-8">
+                <h2 class="text-4xl md:text-5xl font-bold text-fitness-dark-gray">Frequently Asked Questions</h2>
+                <p class="mt-4 text-lg text-fitness-gray">Everything you need to know about FitnessOverlays</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white rounded-lg shadow-md p-4 border border-fitness-light-gray">
+                    <button type="button"
+                        class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                        onclick="toggleFAQ(this)">
+                        What is FitnessOverlays?
+                        <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
+                    </button>
+                    <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
+                        <div class="mt-2 text-gray-600 pt-2">
+                            FitnessOverlays is a tool that creates customizable, Instagram-ready overlays for your
+                            Strava
+                            activities. It allows you to showcase your fitness achievements with transparent
+                            backgrounds,
+                            perfect
+                            for social media sharing.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4 border border-fitness-light-gray">
+                    <button type="button"
+                        class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                        onclick="toggleFAQ(this)">
+                        How does it work?
+                        <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
+                    </button>
+                    <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
+                        <div class="mt-2 text-gray-600 pt-2">
+                            Simply connect your Strava account, select an activity, and customize your overlay with
+                            various
+                            templates, colors, and stats. Once you're happy with the design, you can download it as a
+                            transparent
+                            PNG ready to share on Instagram or other platforms.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4 border border-fitness-light-gray">
+                    <button type="button"
+                        class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                        onclick="toggleFAQ(this)">
+                        Is it free?
+                        <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
+                    </button>
+                    <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
+                        <div class="mt-2 text-gray-600 pt-2">
+                            Yes! FitnessOverlays is completely free to use. We believe in making fitness visualization
+                            accessible to
+                            everyone.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4 border border-fitness-light-gray">
+                    <button type="button"
+                        class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                        onclick="toggleFAQ(this)">
+                        What data does it access?
+                        <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
+                    </button>
+                    <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
+                        <div class="mt-2 text-gray-600 pt-2">
+                            We ask for read-only access to your Strava activities and some info from your profile to
+                            make
+                            your
+                            experience better. We don't change anything on your account.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4 border border-fitness-light-gray">
+                    <button type="button"
+                        class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                        onclick="toggleFAQ(this)">
+                        How do I disconnect my Strava account?
+                        <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
+                    </button>
+                    <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
+                        <div class="mt-2 text-gray-600 pt-2">
+                            To completely disconnect FitnessOverlays from your Strava account, you need to revoke access
+                            in
+                            your
+                            Strava settings:
+                            <ol class="list-decimal list-inside mt-2 space-y-1">
+                                <li>Go to your Strava account settings</li>
+                                <li>Navigate to "My Apps"</li>
+                                <li>Find FitnessOverlays in the list</li>
+                                <li>Click "Revoke Access"</li>
+                            </ol>
+                            <p class="mt-2">Note: Simply logging out of FitnessOverlays only ends your session but
+                                doesn't
+                                revoke
+                                the app's access to your Strava data.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4 border border-fitness-light-gray">
+                    <button type="button"
+                        class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                        onclick="toggleFAQ(this)">
+                        Can I customize the overlays?
+                        <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
+                    </button>
+                    <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
+                        <div class="mt-2 text-gray-600 pt-2">
+                            Yes! You can customize various aspects of your overlays including colors, fonts, stats
+                            displayed, and
+                            layout. We're constantly adding new customization options based on user feedback.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4 border border-fitness-light-gray">
+                    <button type="button"
+                        class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                        onclick="toggleFAQ(this)">
+                        How do I report a bug?
+                        <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
+                    </button>
+                    <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
+                        <div class="mt-2 text-gray-600 pt-2">
+                            If you encounter any issues, please report them on our
+                            <a href="https://github.com/spyroslontos/FitnessOverlays" target="_blank"
+                                class="text-fitness-green hover:underline">GitHub repository</a>.
+                            We appreciate your help in making FitnessOverlays better!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if not authenticated %}
+    <!-- CTA Section after FAQ -->
+    <section class="w-full py-12 bg-gradient-to-b from-white to-gray-50">
+        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h3 class="text-3xl md:text-4xl font-bold text-fitness-dark-gray mb-4">
+                Ready to Create Your First Overlay?
+            </h3>
+            <p class="text-lg text-fitness-gray mb-8">
+                Connect your Strava account and start sharing your achievements in seconds.
+            </p>
+            <div id="connect-strava-cta" class="inline-block cursor-pointer">
+                <img src="/static/images/btn_strava_connect_with_orange_x2.svg"
+                    alt="Connect your Strava account to create your customized overlays"
+                    class="h-16 drop-shadow-lg rounded-lg transform hover:scale-110 transition-transform duration-200">
+            </div>
+        </div>
+    </section>
+    {% endif %}
 </main>
 {% endblock %}
 
@@ -245,11 +429,37 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const connectStravaBtn = document.getElementById('connect-strava');
+        const connectStravaCTA = document.getElementById('connect-strava-cta');
 
         connectStravaBtn?.addEventListener("click", function () {
             window.location.href = "/login";
         });
 
+        connectStravaCTA?.addEventListener("click", function () {
+            window.location.href = "/login";
+        });
+
+        // Initialize all FAQ answers to closed state
+        document.querySelectorAll('.faq-answer').forEach(answer => {
+            answer.style.maxHeight = '0px';
+        });
+
     });
+
+    function toggleFAQ(button) {
+        const answer = button.nextElementSibling;
+        const icon = button.querySelector('span');
+        const isOpen = answer.style.maxHeight && answer.style.maxHeight !== '0px';
+
+        if (isOpen) {
+            answer.style.maxHeight = '0px';
+            icon.textContent = '+';
+            icon.style.transform = 'rotate(0deg)';
+        } else {
+            answer.style.maxHeight = answer.scrollHeight + 'px';
+            icon.textContent = '−';
+            icon.style.transform = 'rotate(180deg)';
+        }
+    }
 </script>
 {% endblock %}
