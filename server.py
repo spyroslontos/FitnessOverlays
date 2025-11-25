@@ -572,34 +572,38 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-@app.route('/')
-def index():
-    logger.info(f"Landing page accessed - IP: {get_remote_address()} | X-Forwarded-For: {request.headers.get('X-Forwarded-For')}")
+
+
+CACHED_USER_COUNT = None
+LAST_COUNT_UPDATE = None
+
+def get_rounded_user_count():
+    global CACHED_USER_COUNT, LAST_COUNT_UPDATE
+    
+    current_time = datetime.now(timezone.utc)
+    
+    if CACHED_USER_COUNT is not None and LAST_COUNT_UPDATE:
+        if current_time - LAST_COUNT_UPDATE < timedelta(hours=1):
+            return CACHED_USER_COUNT
+
     try:
-        csrf_token = generate_csrf_token()
-        if "access_token" not in session:
-            logger.info("Index: No access token in session")
-            return render_template("index.html", 
-                                    authenticated=False, 
-                                    csrf_token=csrf_token)
-        if not ensure_valid_token():
-            return render_template("index.html", 
-                                    authenticated=False, 
-                                    csrf_token=csrf_token)
-        logger.info(f"Index: Authenticated user - Athlete ID: {session.get('athlete_id')} - Athlete Name: {session['athlete_first_name']} {session['athlete_last_name']}")
-        return render_template("index.html",
-                                authenticated=True,
-                                athlete_id=session.get("athlete_id"),
-                                athlete_first_name=session.get("athlete_first_name"),
-                                athlete_last_name=session.get("athlete_last_name"),
-                                athlete_profile=session.get("athlete_profile"),
-                                csrf_token=csrf_token)
+        count = db.session.query(Athletes).count()
+        
+        if count < 10:
+            rounded = count
+        elif count < 100:
+            rounded = (count // 10) * 10
+        elif count < 1000:
+            rounded = (count // 50) * 50
+        else:
+            rounded = (count // 100) * 100
+            
+        CACHED_USER_COUNT = rounded
+        LAST_COUNT_UPDATE = current_time
+        return rounded
     except Exception as e:
-        logger.error(f"Index: Unexpected error: {str(e)}")
-        session.clear()
-        return render_template("index.html", 
-                                authenticated=False, 
-                                csrf_token=generate_csrf_token())
+        logger.error(f"Error fetching user count: {e}")
+        return 200
 
 # --- Rate Limiting ---
 limiter = Limiter(
@@ -800,19 +804,49 @@ def sync_activities():
             return jsonify(create_sync_response(activities, page, per_page, sync_log, seconds_remaining, using_cached=False))
         except Exception as db_error:
             db.session.rollback()
-            logger.error(f'Database error: {str(db_error)}')
-            raise
+            logger.error(f"Database error during sync: {db_error}")
+            return jsonify(create_sync_response(activities, page, per_page, sync_log, seconds_remaining, using_cached=False))
     except Exception as e:
-        logger.error(f'Error syncing activities: {str(e)}')
+        logger.error(f"Sync error: {e}")
         return jsonify(create_sync_response(
             sync_log.data if sync_log else [],
             page,
             per_page,
             sync_log,
             seconds_remaining,
-            warning="Failed to sync data, showing cached data" if sync_log else None,
+            warning="Failed to sync activities",
             using_cached=True
-        )), 500 if not sync_log else 200
+        )), 500
+
+@app.route('/')
+def index():
+    logger.info(f"Landing page accessed - IP: {get_remote_address()} | X-Forwarded-For: {request.headers.get('X-Forwarded-For')}")
+    try:
+        csrf_token = generate_csrf_token()
+        user_count = get_rounded_user_count()
+        
+        if "access_token" not in session or not ensure_valid_token():
+            logger.info("Index: No access token in session or invalid token")
+            return render_template("index.html", 
+                                    authenticated=False, 
+                                    csrf_token=csrf_token,
+                                    user_count=user_count)
+        logger.info(f"Index: Authenticated user - Athlete ID: {session.get('athlete_id')} - Athlete Name: {session['athlete_first_name']} {session['athlete_last_name']}")
+        return render_template("index.html",
+                                authenticated=True,
+                                athlete_id=session.get("athlete_id"),
+                                athlete_first_name=session.get("athlete_first_name"),
+                                athlete_last_name=session.get("athlete_last_name"),
+                                athlete_profile=session.get("athlete_profile"),
+                                csrf_token=csrf_token,
+                                user_count=user_count)
+    except Exception as e:
+        logger.error(f"Index: Unexpected error: {str(e)}")
+        session.clear()
+        return render_template("index.html", 
+                                authenticated=False, 
+                                csrf_token=generate_csrf_token(),
+                                user_count=200)
 
 @limiter.limit("100 per hour", key_func=lambda: session.get("athlete_id", get_remote_address()))
 @app.route('/api/activities/<int:activity_id>', methods=['GET'])
@@ -974,15 +1008,6 @@ def robots_txt():
 def llms_txt():
     return send_from_directory('static', 'llms.txt')
 
-@app.route('/faq')
-def faq():
-    return render_template("faq.html",
-                        authenticated=bool(session.get("athlete_id")),
-                        athlete_id=session.get("athlete_id"),
-                        athlete_first_name=session.get("athlete_first_name"),
-                        athlete_last_name=session.get("athlete_last_name"),
-                        athlete_profile=session.get("athlete_profile"),
-                        csrf_token=session.get('csrf_token', generate_csrf_token()))
 
 @limiter.limit("30 per hour")
 @app.route('/demo')
@@ -1029,12 +1054,6 @@ def sitemap_xml():
             {f'<lastmod>{get_lastmod("templates/index.html")}</lastmod>' if get_lastmod("templates/index.html") else ''}
             <changefreq>weekly</changefreq>
             <priority>1.0</priority>
-        </url>
-        <url>
-            <loc>https://fitnessoverlays.com/faq</loc>
-            {f'<lastmod>{get_lastmod("templates/faq.html")}</lastmod>' if get_lastmod("templates/faq.html") else ''}
-            <changefreq>monthly</changefreq>
-            <priority>0.8</priority>
         </url>
         <url>
             <loc>https://fitnessoverlays.com/demo</loc>
