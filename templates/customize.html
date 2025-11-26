@@ -44,7 +44,6 @@
 {% block content %}
 <main class="flex-grow container mx-auto p-3">
     <div class="max-w-[900px] w-full mx-auto">
-        <!-- Activity Info Card -->
         <!-- Activity Info Card (Compact) -->
         <div id="activityInfoCard" class="bg-white rounded-xl shadow-sm p-2">
             <div class="flex justify-between items-center gap-2">
@@ -73,7 +72,7 @@
                 <div class="flex flex-col overflow-hidden min-w-0">
                     <h1 id="activityName" class="text-base text-fitness-dark-gray font-bold truncate leading-tight">
                     </h1>
-                    <span id="activityDate" class="text-[10px] text-gray-500 leading-none mt-0.5"></span>
+                    <span id="activityDate" class="text-xs text-gray-500 leading-none mt-0.5"></span>
                 </div>
                 {% endif %}
 
@@ -106,24 +105,23 @@
 
 
         <!-- Options Card -->
-        <div class="bg-gradient-to-br from-white to-gray-100 rounded-xl shadow-xl p-6 space-y-6">
+        <div class="bg-gradient-to-br from-white to-gray-100 rounded-xl shadow-xl p-4">
             <!-- Section Contents -->
-            <div id="textSection" class="section-content space-y-4">
+            <div id="textSection" class="section-content space-y-2">
 
                 <!-- Unified Controls Container -->
-                <div class="flex justify-center items-end flex-wrap gap-4">
+                <div class="flex justify-center items-end flex-wrap gap-2">
                     <!-- Preset Options Dropdown -->
-                    <div class="flex flex-col items-center gap-1">
-                        <!-- <label for="presetSelect" class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Preset</label> -->
-                        <select id="presetSelect"
-                            class="h-12 min-w-[140px] bg-white border-2 border-gray-200 text-gray-700 py-1 px-3 rounded-lg leading-tight focus:outline-none focus:border-fitness-orange transition-colors text-sm font-bold text-center cursor-pointer">
-                            <option value="simple">Simple</option>
-                            <option value="runner">The Runner</option>
-                            <option value="influencer">The Influencer</option>
-                            <option value="dataNerd">The Data Nerd</option>
-                            <option value="custom">Custom</option>
-                        </select>
-                    </div>
+                    <select id="presetSelect" class="border-2 border-fitness-green bg-white text-fitness-gray rounded-lg 
+         h-12 text-sm text-center cursor-pointer 
+           appearance-none focus:ring-0 focus:outline-none pr-6">
+                        <option value="simple">Simple</option>
+                        <option value="runner">The Runner</option>
+                        <option value="influencer">The Influencer</option>
+                        <option value="dataNerd">The Data Nerd</option>
+                        <option value="custom">Custom</option>
+                    </select>
+
                     <!-- Color Picker -->
                     <div class="flex flex-col items-center gap-1">
                         <!-- <div class="size-label">Color</div> -->
@@ -237,7 +235,7 @@
             </div>
 
             <!-- Copy Buttons -->
-            <div id="copyButtonsContainer" class="flex flex-row gap-2 mt-6 justify-center">
+            <div id="copyButtonsContainer" class="flex flex-row gap-2 mt-4 justify-center">
                 <div id="copyTextContainer" class="flex-1 flex flex-col items-center gap-1">
                     <button id="copyTextBtn"
                         class="w-14 h-14 bg-black/70 hover:bg-opacity-90 text-white rounded-xl font-medium transition-colors flex items-center justify-center">
@@ -349,38 +347,43 @@
         const PRESETS = {
             simple: {
                 selectedMetrics: ['distance', 'movingTime', 'pace', 'map'],
-                currentFont: 'Poppins',
+                textColor: '#ffffff',
                 textAlign: 'center',
                 labelSize: 'medium',
                 valueSize: 'large',
                 columns: 1,
+                currentFont: 'Poppins',
                 mapColor: '#FF5722'
             },
             runner: {
                 selectedMetrics: ['distance', 'movingTime', 'pace', 'avgHeartRate'],
-                currentFont: 'Oswald',
+                textColor: '#ffffff',
                 textAlign: 'center',
                 labelSize: 'medium',
                 valueSize: 'large',
                 columns: 2,
+                currentFont: 'Oswald',
                 mapColor: '#FF5722'
             },
             influencer: {
                 selectedMetrics: ['distance', 'movingTime', 'pace', 'calories', 'map'],
+                textColor: '#ffffff',
                 currentFont: 'Poppins',
                 textAlign: 'center',
                 labelSize: 'medium',
                 valueSize: 'large',
                 columns: 1,
+                currentFont: 'Poppins',
                 mapColor: '#FF5722'
             },
             dataNerd: {
                 selectedMetrics: ['distance', 'movingTime', 'pace', 'averageSpeed', 'avgHeartRate', 'maxHeartRate', 'elevationGain', 'calories'],
-                currentFont: 'Oswald',
+                textColor: '#ffffff',
                 textAlign: 'left',
                 labelSize: 'small',
                 valueSize: 'large',
                 columns: 3,
+                currentFont: 'Oswald',
                 mapColor: '#FF5722'
             }
         };
@@ -402,14 +405,20 @@
 
         let initialState;
         if (currentPreset === 'custom') {
-            initialState = { ...customSettings };
-        } else if (PRESETS[currentPreset]) {
             initialState = {
                 ...customSettings,
-                ...PRESETS[currentPreset]
+                selectedMetrics: [...customSettings.selectedMetrics]
+            };
+        } else if (PRESETS[currentPreset]) {
+            initialState = {
+                ...PRESETS[currentPreset],
+                selectedMetrics: [...PRESETS[currentPreset].selectedMetrics]
             };
         } else {
-            initialState = { ...defaultCustomSettings };
+            initialState = {
+                ...defaultCustomSettings,
+                selectedMetrics: [...defaultCustomSettings.selectedMetrics]
+            };
             currentPreset = 'custom';
         }
 
@@ -497,6 +506,7 @@
             }
 
             // Update metric buttons
+            const selectedMetricsSet = new Set(state.selectedMetrics);
             document.querySelectorAll('.overlay-option').forEach(button => {
                 const metric = button.dataset.metric;
                 const isAvailable = state.activityData ? !!metricsAvailability[metric] : false;
@@ -508,7 +518,7 @@
                     button.disabled = true;
                     button.classList.add('bg-fitness-light-gray', 'cursor-not-allowed');
                 } else {
-                    if (state.selectedMetrics.includes(metric)) {
+                    if (selectedMetricsSet.has(metric)) {
                         button.classList.add('bg-fitness-green');
                     } else {
                         button.classList.add('bg-fitness-gray');
@@ -696,6 +706,7 @@
             console.log("Processed Strava data:", StravaData);
 
             // Apply button styles based on availability and default selection
+            const selectedMetricsSet = new Set(state.selectedMetrics);
             document.querySelectorAll('.overlay-option').forEach(button => {
                 const metric = button.dataset.metric;
                 button.classList.remove('bg-fitness-green', 'bg-fitness-gray', 'bg-fitness-light-gray', 'cursor-not-allowed');
@@ -705,7 +716,7 @@
                     button.disabled = true;
                     button.classList.add('bg-fitness-light-gray', 'cursor-not-allowed');
                 } else {
-                    if (state.selectedMetrics.includes(metric)) {
+                    if (selectedMetricsSet.has(metric)) {
                         button.classList.add('bg-fitness-green');
                     } else {
                         button.classList.add('bg-fitness-gray');
@@ -1576,9 +1587,22 @@
             sessionStorage.removeItem('columns');
             sessionStorage.removeItem('currentFont');
 
+            customSettings = { ...defaultCustomSettings };
+
             if (presetSelect) {
                 presetSelect.value = 'simple';
-                presetSelect.dispatchEvent(new Event('change'));
+                // Fully reset in-memory state to the Simple preset
+                state.selectedMetrics = [...PRESETS['simple'].selectedMetrics];
+                state.currentFont = PRESETS['simple'].currentFont;
+                state.textAlign = PRESETS['simple'].textAlign;
+                state.labelSize = PRESETS['simple'].labelSize;
+                state.valueSize = PRESETS['simple'].valueSize;
+                state.columns = PRESETS['simple'].columns;
+                state.mapColor = PRESETS['simple'].mapColor;
+                currentPreset = 'simple';
+                sessionStorage.setItem('currentPreset', 'simple');
+                updateAllControls();
+                generateOverlay(StravaData);
             }
         });
 
