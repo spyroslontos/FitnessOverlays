@@ -46,7 +46,7 @@
     <div class="max-w-[900px] w-full mx-auto">
         <!-- Activity Info Card -->
         <!-- Activity Info Card (Compact) -->
-        <div id="activityInfoCard" class="bg-white rounded-xl shadow-sm p-2 mb-2">
+        <div id="activityInfoCard" class="bg-white rounded-xl shadow-sm p-2">
             <div class="flex justify-between items-center gap-2">
                 {% if demo_mode %}
                 <div
@@ -112,6 +112,18 @@
 
                 <!-- Unified Controls Container -->
                 <div class="flex justify-center items-end flex-wrap gap-4">
+                    <!-- Preset Options Dropdown -->
+                    <div class="flex flex-col items-center gap-1">
+                        <!-- <label for="presetSelect" class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Preset</label> -->
+                        <select id="presetSelect"
+                            class="h-12 min-w-[140px] bg-white border-2 border-gray-200 text-gray-700 py-1 px-3 rounded-lg leading-tight focus:outline-none focus:border-fitness-orange transition-colors text-sm font-bold text-center cursor-pointer">
+                            <option value="simple">Simple</option>
+                            <option value="runner">The Runner</option>
+                            <option value="influencer">The Influencer</option>
+                            <option value="dataNerd">The Data Nerd</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
                     <!-- Color Picker -->
                     <div class="flex flex-col items-center gap-1">
                         <!-- <div class="size-label">Color</div> -->
@@ -334,20 +346,176 @@
             }
         }
 
+        const PRESETS = {
+            simple: {
+                selectedMetrics: ['distance', 'movingTime', 'pace', 'map'],
+                currentFont: 'Poppins',
+                textAlign: 'center',
+                labelSize: 'medium',
+                valueSize: 'large',
+                columns: 1,
+                mapColor: '#FF5722'
+            },
+            runner: {
+                selectedMetrics: ['distance', 'movingTime', 'pace', 'avgHeartRate'],
+                currentFont: 'Oswald',
+                textAlign: 'center',
+                labelSize: 'medium',
+                valueSize: 'large',
+                columns: 2,
+                mapColor: '#FF5722'
+            },
+            influencer: {
+                selectedMetrics: ['distance', 'movingTime', 'pace', 'calories', 'map'],
+                currentFont: 'Poppins',
+                textAlign: 'center',
+                labelSize: 'medium',
+                valueSize: 'large',
+                columns: 1,
+                mapColor: '#FF5722'
+            },
+            dataNerd: {
+                selectedMetrics: ['distance', 'movingTime', 'pace', 'averageSpeed', 'avgHeartRate', 'maxHeartRate', 'elevationGain', 'calories'],
+                currentFont: 'Oswald',
+                textAlign: 'left',
+                labelSize: 'small',
+                valueSize: 'large',
+                columns: 3,
+                mapColor: '#FF5722'
+            }
+        };
+
+        // Load custom settings from session or use defaults
+        const defaultCustomSettings = {
+            selectedMetrics: ['distance', 'movingTime', 'pace', 'map'],
+            textColor: '#ffffff',
+            textAlign: 'center',
+            labelSize: 'medium',
+            valueSize: 'large',
+            columns: 1,
+            currentFont: 'Poppins',
+            mapColor: '#FF5722'
+        };
+
+        let customSettings = JSON.parse(sessionStorage.getItem('customSettings')) || defaultCustomSettings;
+        let currentPreset = sessionStorage.getItem('currentPreset') || 'simple';
+
+        let initialState;
+        if (currentPreset === 'custom') {
+            initialState = { ...customSettings };
+        } else if (PRESETS[currentPreset]) {
+            initialState = {
+                ...customSettings,
+                ...PRESETS[currentPreset]
+            };
+        } else {
+            initialState = { ...defaultCustomSettings };
+            currentPreset = 'custom';
+        }
+
         const state = {
             activityId: null,
             activityData: null,
             athleteId: null,
-            selectedMetrics: JSON.parse(sessionStorage.getItem('selectedMetrics')) || ['distance', 'movingTime', 'pace', 'map'],
             isAuthenticated: false,
-            textColor: sessionStorage.getItem('textColor') || '#ffffff',
-            textAlign: sessionStorage.getItem('textAlign') || 'center',
-            labelSize: sessionStorage.getItem('labelSize') || 'medium',
-            valueSize: sessionStorage.getItem('valueSize') || 'large',
-            columns: parseInt(sessionStorage.getItem('columns'), 10) || 1,
-            currentFont: sessionStorage.getItem('currentFont') || 'Poppins',
-            mapColor: sessionStorage.getItem('mapColor') || '#FF5722'
+            ...initialState
         };
+
+        const presetSelect = document.getElementById('presetSelect');
+        if (presetSelect) {
+            presetSelect.value = currentPreset;
+
+            presetSelect.addEventListener('change', (e) => {
+                const newPreset = e.target.value;
+
+                if (newPreset === 'custom') {
+                    state.selectedMetrics = [...customSettings.selectedMetrics];
+                    state.textColor = customSettings.textColor;
+                    state.textAlign = customSettings.textAlign;
+                    state.labelSize = customSettings.labelSize;
+                    state.valueSize = customSettings.valueSize;
+                    state.columns = customSettings.columns;
+                    state.currentFont = customSettings.currentFont;
+                    state.mapColor = customSettings.mapColor;
+                } else if (PRESETS[newPreset]) {
+                    if (currentPreset === 'custom') {
+                        updateCustomSettingsFromState();
+                    }
+                    state.selectedMetrics = [...PRESETS[newPreset].selectedMetrics];
+                    state.currentFont = PRESETS[newPreset].currentFont;
+                    state.textAlign = PRESETS[newPreset].textAlign;
+                    state.labelSize = PRESETS[newPreset].labelSize;
+                    state.valueSize = PRESETS[newPreset].valueSize;
+                    state.columns = PRESETS[newPreset].columns;
+                    state.mapColor = PRESETS[newPreset].mapColor;
+                }
+
+                currentPreset = newPreset;
+                sessionStorage.setItem('currentPreset', currentPreset);
+
+                updateAllControls();
+                generateOverlay(StravaData);
+            });
+        }
+
+        function updateCustomSettingsFromState() {
+            customSettings = {
+                selectedMetrics: state.selectedMetrics,
+                textColor: state.textColor,
+                textAlign: state.textAlign,
+                labelSize: state.labelSize,
+                valueSize: state.valueSize,
+                columns: state.columns,
+                currentFont: state.currentFont,
+                mapColor: state.mapColor
+            };
+            sessionStorage.setItem('customSettings', JSON.stringify(customSettings));
+        }
+
+        function handleSettingChange() {
+            if (currentPreset !== 'custom') {
+                currentPreset = 'custom';
+                if (presetSelect) presetSelect.value = 'custom';
+                sessionStorage.setItem('currentPreset', 'custom');
+            }
+            updateCustomSettingsFromState();
+        }
+
+        function updateAllControls() {
+            if (colorWheel) colorWheel.value = state.textColor;
+            if (mapColorWheel) mapColorWheel.value = state.mapColor;
+            updateAlignButton();
+            updateLabelSizeButton();
+            updateValueSizeButton();
+            updateColumnButton();
+
+            const fontCycleBtn = document.getElementById('fontCycleBtn');
+            const fontNameDisplay = document.getElementById('fontNameDisplay');
+            if (fontCycleBtn && fontNameDisplay) {
+                fontCycleBtn.style.setProperty('--current-font', state.currentFont);
+                fontNameDisplay.textContent = FONT_LABEL[state.currentFont];
+            }
+
+            // Update metric buttons
+            document.querySelectorAll('.overlay-option').forEach(button => {
+                const metric = button.dataset.metric;
+                const isAvailable = state.activityData ? !!metricsAvailability[metric] : false;
+
+                button.classList.remove('bg-fitness-green', 'bg-fitness-gray', 'bg-fitness-light-gray', 'cursor-not-allowed');
+                button.disabled = false;
+
+                if (!isAvailable) {
+                    button.disabled = true;
+                    button.classList.add('bg-fitness-light-gray', 'cursor-not-allowed');
+                } else {
+                    if (state.selectedMetrics.includes(metric)) {
+                        button.classList.add('bg-fitness-green');
+                    } else {
+                        button.classList.add('bg-fitness-gray');
+                    }
+                }
+            });
+        }
 
         // Define font cycle order with labels
         const FONT_ORDER = [
@@ -931,9 +1099,7 @@
                     state.selectedMetrics.push(metric);
                 }
 
-                // Save the updated selection to sessionStorage
-                sessionStorage.setItem('selectedMetrics', JSON.stringify(state.selectedMetrics));
-
+                handleSettingChange(); // Track change
                 generateOverlay(StravaData);
             });
         });
@@ -1095,17 +1261,16 @@
         // Update color wheel handler
         colorWheel.addEventListener('input', (e) => {
             state.textColor = e.target.value;
+            handleSettingChange();
             generateOverlay(StravaData);
-            // Save state
-            sessionStorage.setItem('textColor', state.textColor);
         });
 
         // Map color wheel handler
         mapColorWheel.value = state.mapColor;
         mapColorWheel.addEventListener('input', (e) => {
             state.mapColor = e.target.value;
+            handleSettingChange();
             generateOverlay(StravaData);
-            sessionStorage.setItem('mapColor', state.mapColor);
         });
 
         // Copy Text Button - Seems mostly correct, ensure toast
@@ -1328,9 +1493,8 @@
 
                 // Update state and redraw
                 state.textAlign = alignment;
+                handleSettingChange();
                 generateOverlay(StravaData);
-                // Save state
-                sessionStorage.setItem('textAlign', state.textAlign);
             });
         });
 
@@ -1342,9 +1506,8 @@
                     b.classList.toggle('active', b === btn);
                 });
                 state.labelSize = size;
+                handleSettingChange();
                 generateOverlay(StravaData);
-                // Save state
-                sessionStorage.setItem('labelSize', state.labelSize);
             });
         });
 
@@ -1355,9 +1518,8 @@
                     b.classList.toggle('active', b === btn);
                 });
                 state.valueSize = size;
+                handleSettingChange();
                 generateOverlay(StravaData);
-                // Save state
-                sessionStorage.setItem('valueSize', state.valueSize);
             });
         });
 
@@ -1366,36 +1528,32 @@
             const currentIndex = ALIGN_ORDER.indexOf(state.textAlign);
             state.textAlign = ALIGN_ORDER[(currentIndex + 1) % ALIGN_ORDER.length];
             updateAlignButton();
+            handleSettingChange();
             generateOverlay(StravaData);
-            // Save state
-            sessionStorage.setItem('textAlign', state.textAlign);
         });
 
         labelSizeCycleBtn?.addEventListener('click', () => {
             const currentIndex = SIZE_ORDER.indexOf(state.labelSize);
             state.labelSize = SIZE_ORDER[(currentIndex + 1) % SIZE_ORDER.length];
             updateLabelSizeButton();
+            handleSettingChange();
             generateOverlay(StravaData);
-            // Save state
-            sessionStorage.setItem('labelSize', state.labelSize);
         });
 
         valueSizeCycleBtn?.addEventListener('click', () => {
             const currentIndex = SIZE_ORDER.indexOf(state.valueSize);
             state.valueSize = SIZE_ORDER[(currentIndex + 1) % SIZE_ORDER.length];
             updateValueSizeButton();
+            handleSettingChange();
             generateOverlay(StravaData);
-            // Save state
-            sessionStorage.setItem('valueSize', state.valueSize);
         });
 
         columnToggleBtn?.addEventListener('click', () => {
             // Cycle through 1, 2, 3, 4 columns
             state.columns = (state.columns % 4) + 1;
             updateColumnButton();
+            handleSettingChange();
             generateOverlay(StravaData);
-            // Save state
-            sessionStorage.setItem('columns', state.columns.toString());
         });
 
         // --- Initial Button States ---
@@ -1407,17 +1565,8 @@
         // --- Reset Button Logic ---
         const resetSettingsBtn = document.getElementById('resetSettingsBtn');
         resetSettingsBtn?.addEventListener('click', () => {
-            // Define default values
-            const defaultMetrics = ['distance', 'movingTime', 'pace', 'map'];
-            const defaultTextColor = '#ffffff';
-            const defaultMapColor = '#FF5722';
-            const defaultTextAlign = 'center';
-            const defaultLabelSize = 'medium';
-            const defaultValueSize = 'large';
-            const defaultColumns = 1;
-            const defaultFont = 'Poppins';
-
-            // 1. Clear saved state from sessionStorage
+            sessionStorage.removeItem('customSettings');
+            sessionStorage.removeItem('currentPreset');
             sessionStorage.removeItem('selectedMetrics');
             sessionStorage.removeItem('textColor');
             sessionStorage.removeItem('mapColor');
@@ -1427,55 +1576,10 @@
             sessionStorage.removeItem('columns');
             sessionStorage.removeItem('currentFont');
 
-            // 2. Reset the state object
-            state.selectedMetrics = [...defaultMetrics];
-            state.textColor = defaultTextColor;
-            state.mapColor = defaultMapColor;
-            state.textAlign = defaultTextAlign;
-            state.labelSize = defaultLabelSize;
-            state.valueSize = defaultValueSize;
-            state.columns = defaultColumns;
-            state.currentFont = defaultFont;
-
-            // 3. Update Controls UI
-            if (colorWheel) colorWheel.value = defaultTextColor;
-            if (mapColorWheel) mapColorWheel.value = defaultMapColor;
-            updateAlignButton();
-            updateLabelSizeButton();
-            updateValueSizeButton();
-            updateColumnButton();
-
-            // Update font button
-            const fontCycleBtn = document.getElementById('fontCycleBtn');
-            const fontNameDisplay = document.getElementById('fontNameDisplay');
-            if (fontCycleBtn && fontNameDisplay) {
-                fontCycleBtn.style.setProperty('--current-font', defaultFont);
-                fontNameDisplay.textContent = FONT_LABEL[defaultFont];
+            if (presetSelect) {
+                presetSelect.value = 'simple';
+                presetSelect.dispatchEvent(new Event('change'));
             }
-
-            // 4. Update Metric Buttons UI
-            document.querySelectorAll('.overlay-option').forEach(button => {
-                const metric = button.dataset.metric;
-                // Check availability from the existing metricsAvailability map (created during loadActivityFromSession)
-                const isAvailable = state.activityData ? !!metricsAvailability[metric] : false; // Now accesses the higher-scoped variable
-
-                button.classList.remove('bg-fitness-green', 'bg-fitness-gray', 'bg-fitness-light-gray', 'cursor-not-allowed');
-                button.disabled = false;
-
-                if (!isAvailable) {
-                    button.disabled = true;
-                    button.classList.add('bg-fitness-light-gray', 'cursor-not-allowed');
-                } else {
-                    if (defaultMetrics.includes(metric)) {
-                        button.classList.add('bg-fitness-green');
-                    } else {
-                        button.classList.add('bg-fitness-gray');
-                    }
-                }
-            });
-
-            // 5. Redraw Canvas
-            generateOverlay(StravaData);
         });
 
         // --- Image Save Modal Logic ---
@@ -1507,7 +1611,7 @@
             state.currentFont = FONT_ORDER[(FONT_ORDER.indexOf(state.currentFont) + 1) % FONT_ORDER.length];
             fontCycleBtn.style.setProperty('--current-font', state.currentFont);
             fontNameDisplay.textContent = FONT_LABEL[state.currentFont];
-            sessionStorage.setItem('currentFont', state.currentFont);
+            handleSettingChange();
             generateOverlay(StravaData);
         });
 
