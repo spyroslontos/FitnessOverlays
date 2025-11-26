@@ -437,27 +437,13 @@
             presetSelect.addEventListener('change', (e) => {
                 const newPreset = e.target.value;
 
-                if (newPreset === 'custom') {
-                    state.selectedMetrics = [...customSettings.selectedMetrics];
-                    state.textColor = customSettings.textColor;
-                    state.textAlign = customSettings.textAlign;
-                    state.labelSize = customSettings.labelSize;
-                    state.valueSize = customSettings.valueSize;
-                    state.columns = customSettings.columns;
-                    state.currentFont = customSettings.currentFont;
-                    state.mapColor = customSettings.mapColor;
-                } else if (PRESETS[newPreset]) {
-                    if (currentPreset === 'custom') {
-                        updateCustomSettingsFromState();
-                    }
-                    state.selectedMetrics = [...PRESETS[newPreset].selectedMetrics];
-                    state.currentFont = PRESETS[newPreset].currentFont;
-                    state.textAlign = PRESETS[newPreset].textAlign;
-                    state.labelSize = PRESETS[newPreset].labelSize;
-                    state.valueSize = PRESETS[newPreset].valueSize;
-                    state.columns = PRESETS[newPreset].columns;
-                    state.mapColor = PRESETS[newPreset].mapColor;
+                // Save custom settings before switching away from custom preset
+                if (currentPreset === 'custom') {
+                    updateCustomSettingsFromState();
                 }
+
+                // Apply the new preset settings
+                applyPresetSettings(newPreset);
 
                 currentPreset = newPreset;
                 sessionStorage.setItem('currentPreset', currentPreset);
@@ -490,22 +476,39 @@
             updateCustomSettingsFromState();
         }
 
-        function updateAllControls() {
-            if (colorWheel) colorWheel.value = state.textColor;
-            if (mapColorWheel) mapColorWheel.value = state.mapColor;
-            updateAlignButton();
-            updateLabelSizeButton();
-            updateValueSizeButton();
-            updateColumnButton();
-
-            const fontCycleBtn = document.getElementById('fontCycleBtn');
-            const fontNameDisplay = document.getElementById('fontNameDisplay');
-            if (fontCycleBtn && fontNameDisplay) {
-                fontCycleBtn.style.setProperty('--current-font', state.currentFont);
-                fontNameDisplay.textContent = FONT_LABEL[state.currentFont];
+        // Helper function to create a cropped canvas from the main canvas
+        function createCroppedCanvas() {
+            if (!canvas || !state.activityData || state.selectedMetrics.length === 0) {
+                return null;
             }
 
-            // Update metric buttons
+            const bbox = getCroppedDimensions(StravaData, ctx, canvas);
+            if (!bbox || bbox.width <= 0 || bbox.height <= 0) {
+                return null;
+            }
+
+            // Create high-resolution canvas (4x for better quality)
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            const scaleFactor = 4; // Increased from 2 for higher quality
+            tempCanvas.width = bbox.width * scaleFactor;
+            tempCanvas.height = bbox.height * scaleFactor;
+
+            // Ensure high-quality rendering
+            tempCtx.imageSmoothingEnabled = true;
+            tempCtx.imageSmoothingQuality = 'medium';
+
+            tempCtx.drawImage(
+                canvas,
+                bbox.x, bbox.y, bbox.width, bbox.height,
+                0, 0, tempCanvas.width, tempCanvas.height
+            );
+
+            return tempCanvas;
+        }
+
+        // Helper function to update metric button styles
+        function updateMetricButtons() {
             const selectedMetricsSet = new Set(state.selectedMetrics);
             document.querySelectorAll('.overlay-option').forEach(button => {
                 const metric = button.dataset.metric;
@@ -525,6 +528,49 @@
                     }
                 }
             });
+        }
+
+        // Helper function to apply preset settings to state
+        function applyPresetSettings(presetName) {
+            if (presetName === 'custom') {
+                state.selectedMetrics = [...customSettings.selectedMetrics];
+                state.textColor = customSettings.textColor;
+                state.textAlign = customSettings.textAlign;
+                state.labelSize = customSettings.labelSize;
+                state.valueSize = customSettings.valueSize;
+                state.columns = customSettings.columns;
+                state.currentFont = customSettings.currentFont;
+                state.mapColor = customSettings.mapColor;
+            } else if (PRESETS[presetName]) {
+                state.selectedMetrics = [...PRESETS[presetName].selectedMetrics];
+                state.textColor = PRESETS[presetName].textColor;
+                state.currentFont = PRESETS[presetName].currentFont;
+                state.textAlign = PRESETS[presetName].textAlign;
+                state.labelSize = PRESETS[presetName].labelSize;
+                state.valueSize = PRESETS[presetName].valueSize;
+                state.columns = PRESETS[presetName].columns;
+                state.mapColor = PRESETS[presetName].mapColor;
+            }
+        }
+
+
+        function updateAllControls() {
+            if (colorWheel) colorWheel.value = state.textColor;
+            if (mapColorWheel) mapColorWheel.value = state.mapColor;
+            updateAlignButton();
+            updateLabelSizeButton();
+            updateValueSizeButton();
+            updateColumnButton();
+
+            const fontCycleBtn = document.getElementById('fontCycleBtn');
+            const fontNameDisplay = document.getElementById('fontNameDisplay');
+            if (fontCycleBtn && fontNameDisplay) {
+                fontCycleBtn.style.setProperty('--current-font', state.currentFont);
+                fontNameDisplay.textContent = FONT_LABEL[state.currentFont];
+            }
+
+            // Update metric buttons using helper function
+            updateMetricButtons();
         }
 
         // Define font cycle order with labels
@@ -678,19 +724,8 @@
 
             console.log("Available metrics:", metricsAvailability);
 
-            // Update buttons based on data availability
-            document.querySelectorAll('.overlay-option').forEach(button => {
-                const metric = button.dataset.metric;
-                if (!metricsAvailability[metric]) {
-                    button.disabled = true;
-                    button.classList.remove('bg-fitness-gray', 'bg-fitness-green');
-                    button.classList.add('bg-fitness-light-gray', 'cursor-not-allowed');
-                } else {
-                    button.disabled = false;
-                    button.classList.remove('bg-fitness-light-gray', 'cursor-not-allowed');
-                    button.classList.add('bg-fitness-gray');
-                }
-            });
+            // Update buttons based on data availability using helper function
+            updateMetricButtons();
 
             // Update StravaData only for available metrics
             StravaData.distance = metricsAvailability.distance ? (activityData.distance / 1000).toFixed(2) + ' km' : null;
@@ -704,25 +739,6 @@
             StravaData.map = metricsAvailability.map ? activityData.map : null;
 
             console.log("Processed Strava data:", StravaData);
-
-            // Apply button styles based on availability and default selection
-            const selectedMetricsSet = new Set(state.selectedMetrics);
-            document.querySelectorAll('.overlay-option').forEach(button => {
-                const metric = button.dataset.metric;
-                button.classList.remove('bg-fitness-green', 'bg-fitness-gray', 'bg-fitness-light-gray', 'cursor-not-allowed');
-                button.disabled = false;
-
-                if (!metricsAvailability[metric]) {
-                    button.disabled = true;
-                    button.classList.add('bg-fitness-light-gray', 'cursor-not-allowed');
-                } else {
-                    if (selectedMetricsSet.has(metric)) {
-                        button.classList.add('bg-fitness-green');
-                    } else {
-                        button.classList.add('bg-fitness-gray');
-                    }
-                }
-            });
 
             generateOverlay();
 
@@ -1317,25 +1333,11 @@
         });
 
         copyImageBtn?.addEventListener('click', async () => {
-            if (!state.activityData || state.selectedMetrics.length === 0) return;
-            if (!canvas) return;
-
-            const bbox = getCroppedDimensions(StravaData, ctx, canvas);
-            if (!bbox || bbox.width <= 0 || bbox.height <= 0) {
+            const tempCanvas = createCroppedCanvas();
+            if (!tempCanvas) {
                 showToast('Nothing to copy');
                 return;
             }
-
-            // Create a temporary canvas sized to the bounding box
-            const tempCanvas = document.createElement('canvas');
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCanvas.width = bbox.width * 2;
-            tempCanvas.height = bbox.height * 2;
-            tempCtx.drawImage(
-                canvas,
-                bbox.x, bbox.y, bbox.width, bbox.height,
-                0, 0, tempCanvas.width, tempCanvas.height
-            );
 
             try {
                 const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
@@ -1378,67 +1380,22 @@
 
         // Modify the saveImageBtn to handle mobile and desktop differently
         saveImageBtn?.addEventListener('click', async () => {
-            if (!state.activityData || state.selectedMetrics.length === 0) {
-                console.warn('No activity data or selected metrics to save.');
-                return;
-            }
-            if (!canvas) {
-                console.error("Canvas element not found for saving image.");
+            const tempCanvas = createCroppedCanvas();
+            if (!tempCanvas) {
+                console.warn('No content detected on canvas or invalid bounding box.');
+                showToast('Nothing to save');
                 return;
             }
 
             if (isLikelyMobileDevice()) {
                 // Show modal for mobile users
                 if (imageSaveModal && modalImage) {
-                    const bbox = getCroppedDimensions(StravaData, ctx, canvas);
-
-                    if (!bbox || bbox.width <= 0 || bbox.height <= 0) {
-                        console.warn("No content detected on canvas or invalid bounding box.", bbox);
-                        showToast('Nothing to save');
-                        return;
-                    }
-
-                    // Create a temporary canvas sized to the bounding box
-                    const tempCanvas = document.createElement('canvas');
-                    const tempCtx = tempCanvas.getContext('2d');
-                    tempCanvas.width = bbox.width * 2;
-                    tempCanvas.height = bbox.height * 2;
-
-                    // Draw the relevant part of the original canvas onto the temporary canvas
-                    tempCtx.drawImage(
-                        canvas,
-                        bbox.x, bbox.y, bbox.width, bbox.height, // Source rectangle (from original canvas)
-                        0, 0, tempCanvas.width, tempCanvas.height // Destination rectangle (scaled for high resolution)
-                    );
-
                     modalImage.src = tempCanvas.toDataURL('image/png');
                     imageSaveModal.classList.remove('hidden');
                 }
             } else {
                 // Handle desktop download
                 try {
-                    const bbox = getCroppedDimensions(StravaData, ctx, canvas);
-
-                    if (!bbox || bbox.width <= 0 || bbox.height <= 0) {
-                        console.warn("No content detected on canvas or invalid bounding box.", bbox);
-                        showToast('Nothing to save');
-                        return;
-                    }
-
-                    // Create a temporary canvas sized to the bounding box
-                    const tempCanvas = document.createElement('canvas');
-                    const tempCtx = tempCanvas.getContext('2d');
-                    tempCanvas.width = bbox.width * 2;
-                    tempCanvas.height = bbox.height * 2;
-
-                    // Draw the relevant part of the original canvas onto the temporary canvas
-                    tempCtx.drawImage(
-                        canvas,
-                        bbox.x, bbox.y, bbox.width, bbox.height, // Source rectangle (from original canvas)
-                        0, 0, tempCanvas.width, tempCanvas.height // Destination rectangle (scaled for high resolution)
-                    );
-
-                    // Trigger download
                     const link = document.createElement('a');
                     link.download = `fitnessoverlays_${state.activityId || 'image'}.png`;
                     link.href = tempCanvas.toDataURL('image/png');
@@ -1593,6 +1550,7 @@
                 presetSelect.value = 'simple';
                 // Fully reset in-memory state to the Simple preset
                 state.selectedMetrics = [...PRESETS['simple'].selectedMetrics];
+                state.textColor = PRESETS['simple'].textColor;
                 state.currentFont = PRESETS['simple'].currentFont;
                 state.textAlign = PRESETS['simple'].textAlign;
                 state.labelSize = PRESETS['simple'].labelSize;
