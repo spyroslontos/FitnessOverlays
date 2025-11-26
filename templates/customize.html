@@ -45,15 +45,16 @@
 <main class="flex-grow container mx-auto p-3">
     <div class="max-w-[900px] w-full mx-auto">
         <!-- Activity Info Card -->
-        <div id="activityInfoCard" class="bg-white rounded-xl shadow-lg p-3">
-            <div class="flex justify-between items-center">
+        <!-- Activity Info Card (Compact) -->
+        <div id="activityInfoCard" class="bg-white rounded-xl shadow-sm p-2 mb-2">
+            <div class="flex justify-between items-center gap-2">
                 {% if demo_mode %}
                 <div
-                    class="flex flex-row items-center w-full gap-2 bg-gradient-to-r from-fitness-orange to-orange-500 rounded-lg py-2.5 px-4 shadow-sm">
+                    class="flex flex-row items-center w-full gap-2 bg-gradient-to-r from-fitness-orange to-orange-500 rounded-lg py-1.5 px-3 shadow-sm">
                     <!-- Left: Icon + Label -->
                     <span
-                        class="flex items-center gap-2 text-base font-bold text-white uppercase tracking-wide select-none flex-1">
-                        <svg class="w-4 h-4 text-white opacity-90" fill="none" stroke="currentColor" stroke-width="2"
+                        class="flex items-center gap-2 text-sm font-bold text-white uppercase tracking-wide select-none flex-1">
+                        <svg class="w-3 h-3 text-white opacity-90" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" />
                             <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
@@ -63,31 +64,35 @@
                     <!-- Right: CTA Link with dynamic text and href -->
                     <div class="flex justify-end flex-shrink-0">
                         <a href="{{ '/activities' if authenticated else '/' }}"
-                            class="bg-fitness-green text-white p-3 rounded-lg text-xs font-medium text-center hover:scale-110 transition-transform duration-200 ">
+                            class="bg-fitness-green text-white py-1 px-2 rounded text-[10px] font-medium text-center hover:scale-105 transition-transform duration-200 ">
                             {{ 'Use your own data' if authenticated else 'Get started' }}
                         </a>
                     </div>
                 </div>
                 {% else %}
-                <div class="flex items-center gap-3">
-                    <h1 id="activityName" class="text-lg text-fitness-dark-gray font-semibold"></h1>
+                <div class="flex flex-col overflow-hidden min-w-0">
+                    <h1 id="activityName" class="text-base text-fitness-dark-gray font-bold truncate leading-tight">
+                    </h1>
+                    <span id="activityDate" class="text-[10px] text-gray-500 leading-none mt-0.5"></span>
                 </div>
                 {% endif %}
 
                 {% if not demo_mode %}
                 <a id="stravaLink" href="#" target="_blank"
-                    class="bg-fitness-orange text-white p-3 rounded-lg text-xs font-medium transition-colors text-center hover:bg-orange-600">
+                    class="bg-fitness-orange text-white py-1.5 px-3 rounded-lg text-[10px] font-medium transition-colors text-center hover:bg-orange-600 shrink-0 uppercase tracking-wide">
                     View on Strava
                 </a>
                 {% endif %}
             </div>
         </div>
 
+        <!-- Canvas Container -->
+
         <div class="w-full mx-auto py-3">
             <div class="bg-white rounded-lg shadow-lg p-2 max-w-md mx-auto flex items-center justify-center">
                 <div class="w-full flex items-center justify-center relative">
                     <canvas id="overlayCanvas"
-                        class="block dark-checkerboard rounded-md shadow-md mx-auto w-full h-full"></canvas>
+                        class="block dark-checkerboard rounded-md shadow-md mx-auto w-full aspect-[4/5]"></canvas>
                     <div id="loadingOverlay"
                         class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-md">
                         <div
@@ -97,6 +102,8 @@
                 </div>
             </div>
         </div>
+
+
 
         <!-- Options Card -->
         <div class="bg-gradient-to-br from-white to-gray-100 rounded-xl shadow-xl p-6 space-y-6">
@@ -464,9 +471,13 @@
             state.activityId = activityData.id;
 
             // Display Activity Info Card
+            // Display Activity Info Card
             if (activityName) {
                 activityName.textContent = activityData.name || 'Untitled Activity';
-                activityName.classList.add('font-bold', 'px-2', 'py-1', 'rounded-md', 'inline-block');
+            }
+            const activityDate = document.getElementById('activityDate');
+            if (activityDate && activityData.start_date) {
+                activityDate.textContent = formatDate(activityData.start_date);
             }
 
             // Only set Strava link if the element exists (not in demo mode)
@@ -541,6 +552,21 @@
             if (loadingOverlay) {
                 loadingOverlay.classList.add('hidden');
             }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            });
+            const formattedTime = date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+            });
+            return `${formattedDate} • ${formattedTime}`;
         }
 
         function formatDuration(seconds) {
@@ -649,9 +675,9 @@
             const dpr = window.devicePixelRatio || 1;
             // Get the container's computed width
             const rect = container.getBoundingClientRect();
-            // Always base everything on width, then set height to 16/9 of width
+            // Always base everything on width, then set height to 5/4 of width (Aspect Ratio 4:5)
             const width = rect.width;
-            const height = width * 3 / 2;
+            const height = width * 5 / 4;
             // Set canvas size in pixels, accounting for DPR
             canvas.width = width * dpr;
             canvas.height = height * dpr;
