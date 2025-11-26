@@ -21,7 +21,7 @@
 {% block content %}
 <main class="flex-grow w-full">
 
-    <section class="w-full text-center relative z-10 fade-in py-8 md:py-12">
+    <section class="w-full text-center relative z-10 fade-in py-8 md:py-12 bg-gray-100">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-0">
             <h1
                 class="text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-fitness-dark-gray leading-tight mb-6">
@@ -225,7 +225,7 @@
         </div>
     </section>
 
-    <section class="w-full py-8 md:py-12 bg-gray-50">
+    <section class="w-full py-8 md:py-12 bg-white">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-8">
                 <h2 class="text-4xl md:text-5xl font-bold text-fitness-dark-gray">Top Features of Our Strava Overlay
@@ -233,25 +233,28 @@
                 <p class="mt-4 text-lg text-fitness-gray">Everything you need to make your Strava stats pop.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <div class="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition duration-300">
+                <div
+                    class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
                     <div
-                        class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
+                        class="flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white mx-auto mb-4 text-3xl shadow-md">
                         <i class="fas fa-image"></i>
                     </div>
                     <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Transparent Backgrounds</h3>
                     <p class="text-fitness-gray">Your overlays blend seamlessly with any Instagram Story background.</p>
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition duration-300">
+                <div
+                    class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
                     <div
-                        class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
+                        class="flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white mx-auto mb-4 text-3xl shadow-md">
                         <i class="fas fa-text-height"></i>
                     </div>
                     <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Full Customization</h3>
                     <p class="text-fitness-gray">Control stats, colors, sizes, and layout. Make it truly yours.</p>
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition duration-300">
+                <div
+                    class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
                     <div
-                        class="flex items-center justify-center h-20 w-20 rounded-full bg-fitness-light-green text-fitness-dark-gray mx-auto mb-4 text-3xl">
+                        class="flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white mx-auto mb-4 text-3xl shadow-md">
                         <i class="fas fa-bolt"></i>
                     </div>
                     <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Quick & Easy</h3>
@@ -262,7 +265,7 @@
         </div>
     </section>
 
-    <section id="faq" class="w-full py-8 md:py-12 bg-white scroll-mt-20">
+    <section id="faq" class="w-full py-8 md:py-12 bg-gray-100 scroll-mt-20">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-8">
                 <h2 class="text-4xl md:text-5xl font-bold text-fitness-dark-gray">Frequently Asked Questions</h2>
@@ -405,7 +408,7 @@
 
     {% if not authenticated %}
     <!-- CTA Section after FAQ -->
-    <section class="w-full py-12 bg-gradient-to-b from-white to-gray-50">
+    <section class="w-full py-12 bg-white">
         <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h3 class="text-3xl md:text-4xl font-bold text-fitness-dark-gray mb-4">
                 Ready to Create Your First Overlay?
