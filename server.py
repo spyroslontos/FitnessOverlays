@@ -594,7 +594,7 @@ def get_rounded_user_count():
         elif count < 100:
             rounded = (count // 10) * 10
         elif count < 1000:
-            rounded = (count // 50) * 50
+            rounded = (count // 10) * 10
         else:
             rounded = (count // 100) * 100
             
