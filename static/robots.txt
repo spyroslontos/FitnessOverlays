@@ -1,6 +1,4 @@
-# ================================
-# General Directives for All Bots
-# ================================
+# Fitness Overlays - robots.txt
 User-agent: *
 Disallow: /api/
 Disallow: /webhook
@@ -9,68 +7,8 @@ Disallow: /logout
 Disallow: /callback
 Disallow: /customize
 Disallow: /activities
-Allow: /static/js/
-Allow: /static/css/
-Allow: /static/images/
-Allow: /favicon.ico
-Allow: /sitemap.xml
-Allow: /robots.txt
 
-Allow: /demo
 Allow: /
-
-# ================================
-# Googlebot Specific Rules
-# ================================
-User-agent: Googlebot
-Disallow: /api/
-Disallow: /webhook
-Disallow: /login
-Disallow: /logout
-Disallow: /callback
-Disallow: /customize
-Disallow: /activities
-Allow: /static/js/
-Allow: /static/css/
-Allow: /static/images/
-Allow: /favicon.ico
-Allow: /sitemap.xml
-Allow: /robots.txt
-
 Allow: /demo
 
-# ================================
-# Bingbot Specific Rules
-# ================================
-User-agent: Bingbot
-Disallow: /api/
-Disallow: /webhook
-Disallow: /login
-Disallow: /logout
-Disallow: /callback
-Disallow: /customize
-Disallow: /activities
-Allow: /static/js/
-Allow: /static/css/
-Allow: /static/images/
-Allow: /favicon.ico
-Allow: /sitemap.xml
-Allow: /robots.txt
-
-Allow: /demo
-
-# ================================
-# SEO Enhancements
-# ================================
-# Prevent duplicate content caused by query parameters
-Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content / 
-
-# ================================
-# Sitemap for Indexing
-# ================================
 Sitemap: https://fitnessoverlays.com/sitemap.xml
-
-# ================================
-# Crawl Rate Control (mild throttle)
-# ================================
-Crawl-delay: 2
