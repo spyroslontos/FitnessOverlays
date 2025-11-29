@@ -449,20 +449,6 @@ def enforce_custom_domain():
         logger.warning(f'Redirecting athlete - IP: {get_remote_address()}')
         return redirect(f"https://fitnessoverlays.com{request.full_path}", code=301)
 
-@app.before_request
-def rate_limit_unknown_paths():
-    allowed_paths = [
-        "/favicon.ico",
-        "/robots.txt",
-        "/llms.txt",
-        "/sitemap.xml",
-        "/static/",
-    ]
-
-    if request.endpoint is None and not any(request.path.startswith(p) for p in allowed_paths):
-        logger.info(f"Triggered 404: for path {request.path}")
-        limiter.check()
-
 def refresh_access_token(refresh_token):
     if not refresh_token:
         logger.warning('Missing refresh token')
@@ -611,7 +597,7 @@ limiter = Limiter(
     key_func=get_remote_address,
     storage_uri=RATELIMIT_STORAGE_URI,
     default_limits=["200 per day", "50 per hour"],
-    default_limits_exempt_when=lambda: request.path.startswith('/static/')
+    default_limits_exempt_when=lambda: request.path.startswith('/static/') or request.path in ['/favicon.ico', '/robots.txt', '/llms.txt', '/sitemap.xml']
 )
 
 @app.errorhandler(429)
