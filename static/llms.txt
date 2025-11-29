@@ -1,18 +1,95 @@
+title: FitnessOverlays
+description: Web app that creates Instagram-ready overlays from Strava workout data with transparent backgrounds
+tags: strava, fitness, instagram, overlays, python, flask, oauth
+
 # FitnessOverlays
-> Web app that creates Instagram-ready overlays from Strava workout data. For common questions like disconnecting from Strava or privacy details, visit the [FAQ section on our homepage](https://fitnessoverlays.com/#faq).
 
-## Getting Started
-- [Installation](NOTES.md): Setup with Python/Flask, Docker, and Tailwind CSS
-- [Usage](README.md): Connect Strava, select activity, customize overlay, export PNG
+FitnessOverlays is a free web application that generates customizable, transparent overlays from your Strava activities. Perfect for sharing runs, rides, and workouts on Instagram Stories, Reels, and TikTok.
 
-## Examples
-- [Demo Data](static/demo/activity_demo.json): Sample Strava activity data
+## Quick Links
 
-## Reference
-- [Developer Guide](NOTES.md): Commands for local dev, Docker, Tailwind builds, Strava webhooks
-- [Project Overview](README.md): Supported metrics (distance, time, pace, heart rate, calories, elevation)
+- **Live App**: https://fitnessoverlays.com
+- **Try Demo**: https://fitnessoverlays.com/demo (no login required)
+- **FAQ**: https://fitnessoverlays.com/#faq
+- **GitHub**: https://github.com/spyroslontos/FitnessOverlays
 
+## How It Works
 
+1. **Connect**: OAuth 2.0 authentication with Strava (read-only access)
+2. **Select**: Browse your recent activities from Strava
+3. **Customize**: Choose metrics, colors, text size, alignment, and layout
+4. **Export**: Download as transparent PNG or copy stats as text
+
+## Supported Metrics
+
+- Distance, Time, Pace/Speed
+- Heart Rate (avg, max)
+- Calories, Elevation Gain
+- Cadence, Power (for cycling)
+- Activity Name, Date, Type
+
+## Tech Stack
+
+### Backend
+- Python 3.x with Flask
+- SQLAlchemy (PostgreSQL)
+- Redis for rate limiting
+- Strava API v3 integration
+
+### Frontend
+- Tailwind CSS
+- Flowbite components
+- Vanilla JavaScript
+
+### Deployment
+- Docker-ready
+- Environment-based configuration
+- HTTPS required in production
+
+## Development
+
+### Local Setup
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Set environment variables
+cp .env.example .env
+
+# Run development server
+python server.py
+```
+
+### Environment Variables
+- `CLIENT_ID`: Strava OAuth client ID
+- `CLIENT_SECRET`: Strava OAuth client secret
+- `SQLALCHEMY_DATABASE_URI`: PostgreSQL connection string
+- `RATELIMIT_STORAGE_URI`: Redis connection string
+- `SECRET_KEY`: Flask session secret
+
+## API Endpoints
+
+- `GET /`: Homepage
+- `GET /demo`: Demo with sample data
+- `GET /login`: Initiate Strava OAuth
+- `GET /callback`: OAuth callback handler
+- `GET /activities`: View user activities (authenticated)
+- `GET /customize`: Customize overlay (authenticated)
+- `GET /api/activities/sync`: Fetch activities from Strava
+- `POST /logout`: End user session
+
+## Privacy & Security
+
+- Read-only access to Strava data
+- No data sold or shared with third parties
+- HTTPS enforced in production
+- Rate limiting on all endpoints
+- CSRF protection on state-changing requests
 
 ## License
-- [License](LICENSE): AGPL-3.0 license 
+
+AGPL-3.0 - See [LICENSE](LICENSE) for details
+
+## Support
+
+For bugs or feature requests, visit the [GitHub repository](https://github.com/spyroslontos/FitnessOverlays)
