@@ -19,17 +19,82 @@
 {% endblock %}
 
 {% block content %}
+<script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is FitnessOverlays?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "FitnessOverlays is a tool that creates customizable, Instagram-ready overlays for your Strava activities. It allows you to showcase your fitness achievements with transparent backgrounds, perfect for social media sharing."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does FitnessOverlays work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Simply connect your Strava account, select an activity, and customize your overlay with various templates, colors, and stats. Once you're happy with the design, you can download it as a transparent PNG ready to share on Instagram or other platforms."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is FitnessOverlays free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! FitnessOverlays is completely free to use. We believe in making fitness visualization accessible to everyone."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What data does FitnessOverlays access?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "We ask for read-only access to your Strava activities and some info from your profile to make your experience better. We don't change anything on your account."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I disconnect my Strava account from FitnessOverlays?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "To completely disconnect FitnessOverlays from your Strava account, you need to revoke access in your Strava settings: 1) Go to your Strava account settings, 2) Navigate to 'My Apps', 3) Find FitnessOverlays in the list, 4) Click 'Revoke Access'. Note: Simply logging out of FitnessOverlays only ends your session but doesn't revoke the app's access to your Strava data."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I customize the overlays?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! You can customize various aspects of your overlays including colors, fonts, stats displayed, and layout. We're constantly adding new customization options based on user feedback."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I export a transparent Strava overlay?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "After customizing your overlay, simply copy the overlay image which automatically has a transparent background. You can then overlay it on your photos or videos in Instagram Stories, Reels, TikTok, or any other platform. No background removal needed!"
+          }
+        }
+      ]
+    }
+</script>
+
 <main class="flex-grow w-full">
 
     <section class="w-full text-center relative z-10 fade-in py-8 md:py-12 bg-gray-100">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-0">
             <h1
                 class="text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-fitness-dark-gray leading-tight mb-6">
-                Instantly Create Stunning Strava Overlays for Social Media
+                Create Instagram-Ready Strava Overlays With Transparent Backgrounds
             </h1>
             <p class="text-base sm:text-lg md:text-xl text-fitness-gray max-w-2xl mx-auto">
-                Generate customizable, transparent overlays for sharing your runs, rides, and workouts seamlessly across
-                Instagram, Reels, or TikTok.
+                Generate customizable overlays for Strava runs, rides, and workouts. Export clean, transparent visuals
+                for Instagram, Reels, TikTok, and more.
             </p>
         </div>
 
