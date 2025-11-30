@@ -110,6 +110,14 @@ logger = logging.getLogger(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_size': 2,
+    'pool_recycle': 3600,
+    'pool_pre_ping': True,
+    'max_overflow': 3,
+    'pool_timeout': 30
+}
+
 app.config.update(
     SESSION_COOKIE_SECURE=True,
     SESSION_COOKIE_HTTPONLY=True,
@@ -279,6 +287,11 @@ def fetch_athlete_details(access_token: str) -> dict | None:
 
 with app.app_context():
     db.create_all()
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    """Ensure database sessions are properly cleaned up after each request"""
+    db.session.remove()
 
 @app.after_request
 def after_request(response: Response) -> Response:
