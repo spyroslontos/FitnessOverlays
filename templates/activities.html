@@ -35,41 +35,45 @@
 {% endblock %}
 
 {% block content %}
-<main class="flex-1 container mx-auto p-4">
-    <div class="max-w-[900px] mx-auto space-y-4">
-        <div class="space-y-2">
-            <div class="sync-button-wrapper inline-block" id="sync-wrapper">
+<main class="flex-1 container mx-auto p-4 max-w-md">
+    <div class="space-y-6">
+        <!-- Header & Sync Section -->
+        <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-black text-gray-900 tracking-tight">Your Activities</h1>
+                <div class="text-xs font-medium text-gray-400" id="last-sync">Checking...</div>
+            </div>
+
+            <div class="sync-button-wrapper w-full" id="sync-wrapper">
                 <div class="sync-progress" id="sync-progress"></div>
-                <button id="sync-button" class="px-4 py-2 bg-fitness-orange text-white rounded-lg 
-                                    flex items-center gap-2 transition-colors
-                                    disabled:opacity-50 disabled:cursor-not-allowed">
+                <button id="sync-button" class="w-full py-3 px-4 bg-gray-900 text-white rounded-xl 
+                                    flex items-center justify-center gap-2 transition-all active:scale-[0.98]
+                                    disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-gray-200">
                     <svg id="sync-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    <span id="sync-text">Sync Activities</span>
+                    <span id="sync-text" class="font-bold text-sm">Sync with Strava</span>
                 </button>
 
-                <!-- Sync bar directly below button, will match its width via JS -->
-                <div id="sync-bar-container" class="bg-fitness-gray rounded-lg h-2 mt-0.5 hidden">
-                    <div id="sync-bar" class="bg-fitness-green rounded-lg h-2" style="width:0%"></div>
+                <!-- Sync bar directly below button -->
+                <div id="sync-bar-container" class="bg-gray-100 rounded-full h-1 mt-2 hidden overflow-hidden">
+                    <div id="sync-bar" class="bg-fitness-orange rounded-full h-1 transition-all duration-1000"
+                        style="width:0%"></div>
                 </div>
             </div>
-
-            <div class="flex flex-col text-sm text-fitness-gray">
-                <div>Last Updated: <span id="last-sync">...</span></div>
-            </div>
         </div>
+
         <!-- Activities Grid -->
-        <div id="activities-grid" class="space-y-4"></div>
+        <div id="activities-grid" class="space-y-3"></div>
     </div>
 </main>
 
 <!-- Load More Button -->
-<div id="load-more-container" class="flex justify-center pb-4">
+<div id="load-more-container" class="flex justify-center py-8">
     <button id="load-more-button"
-        class="px-4 py-2 bg-fitness-green text-white rounded-lg flex items-center gap-2 hover:bg-fitness-dark-green transition-colors hidden">
+        class="px-6 py-2.5 bg-white border border-gray-200 text-gray-600 font-semibold text-sm rounded-full flex items-center gap-2 hover:bg-gray-50 transition-colors hidden shadow-sm">
         Load More
     </button>
 </div>
@@ -92,32 +96,43 @@
         let cooldownIntervalId;
 
         function createActivityTile(activity) {
-            let gradient, mainLabel, mainValue;
+            let iconClass, iconBg, iconColor, mainLabel, mainValue;
 
+            // Determine styles based on activity type
             switch (activity.type) {
                 case 'Run':
-                    gradient = 'from-green-400/90 to-green-600/90';
-                    mainLabel = 'Avg Pace';
+                    iconClass = 'fa-person-running';
+                    iconBg = 'bg-emerald-50';
+                    iconColor = 'text-emerald-600';
+                    mainLabel = 'Pace';
                     mainValue = formatPace(activity.moving_time, activity.distance);
                     break;
                 case 'Ride':
-                    gradient = 'from-orange-400/90 to-orange-600/90';
-                    mainLabel = 'Avg Speed';
+                    iconClass = 'fa-bicycle';
+                    iconBg = 'bg-orange-50';
+                    iconColor = 'text-orange-600';
+                    mainLabel = 'Speed';
                     mainValue = formatSpeed(activity.distance, activity.moving_time);
                     break;
                 case 'Swim':
-                    gradient = 'from-blue-400/90 to-blue-600/90';
-                    mainLabel = 'Avg Pace';
+                    iconClass = 'fa-person-swimming';
+                    iconBg = 'bg-blue-50';
+                    iconColor = 'text-blue-600';
+                    mainLabel = 'Pace';
                     mainValue = formatSwimPace(activity.moving_time, activity.distance);
                     break;
                 case 'Walk':
                 case 'Hike':
-                    gradient = 'from-lime-400/90 to-lime-600/90';
-                    mainLabel = 'Avg Pace';
+                    iconClass = 'fa-person-walking';
+                    iconBg = 'bg-lime-50';
+                    iconColor = 'text-lime-600';
+                    mainLabel = 'Pace';
                     mainValue = formatPace(activity.moving_time, activity.distance);
                     break;
                 default:
-                    gradient = 'from-gray-400/90 to-gray-600/90';
+                    iconClass = 'fa-stopwatch';
+                    iconBg = 'bg-gray-50';
+                    iconColor = 'text-gray-600';
                     if (activity.average_heartrate) {
                         mainLabel = 'Avg HR';
                         mainValue = `${Math.round(activity.average_heartrate)} bpm`;
@@ -131,47 +146,107 @@
             }
 
             const tile = document.createElement('div');
-            tile.className = 'bg-gray-100 rounded-2xl shadow hover:shadow-lg transition-all duration-300 overflow-hidden group border border-fitness-light-gray cursor-pointer';
+            tile.className = 'bg-white rounded-2xl p-4 shadow-sm border border-gray-100 active:scale-[0.99] active:bg-gray-50 transition-all cursor-pointer group relative overflow-hidden';
             tile.onclick = () => saveActivityAndRedirect(activity);
 
-            tile.innerHTML = `
-                    <div class="relative">
-                        <div class="bg-gradient-to-r ${gradient} px-5 py-4 text-zinc-800">
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-sm font-semibold uppercase tracking-wide text-fitness-gray">${activity.type}</span>
-                                    </div>
-                                    <h3 class="font-bold text-xl leading-tight max-w-xl">${activity.name}</h3>
-                                </div>
-                                <div class="text-sm font-semibold text-right w-28 shrink-0">${formatDate(activity.start_date)}</div>
-                            </div>
-                        </div>
-                        <div class="p-4 bg-white">
-                            <div class="grid grid-cols-[1fr_1fr_1fr_0.2fr] gap-4 text-fitness-dark-gray">
-                                <div class="text-center">
-                                    <div class="text-xs uppercase font-medium text-zinc-400 mb-1">Distance</div>
-                                    <div class="text-base font-semibold">${formatDistance(activity.distance)}</div>
-                                </div>
-                                <div class="text-center border-x border-gray-100">
-                                    <div class="text-xs uppercase font-medium text-zinc-400 mb-1">Duration</div>
-                                    <div class="text-base font-semibold">${formatDuration(activity.moving_time)}</div>
-                                </div>
-                                <div class="text-center border-r border-gray-100">
-                                    <div class="text-xs uppercase font-medium text-zinc-400 mb-1">${mainLabel}</div>
-                                    <div class="text-base font-semibold">${mainValue}</div>
-                                </div>
-                                <div class="flex items-center justify-center">
-                                    <div class="w-9 h-9 bg-black/20 rounded-lg flex items-center justify-center backdrop-blur-sm transition-transform duration-200 group-hover:scale-110">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-700" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            // Date formatting
+            const dateObj = new Date(activity.start_date);
+            const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+            // Helper to create stat HTML
+            const createStat = (label, value) => `
+                <div class="flex flex-col">
+                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">${label}</span>
+                    <span class="text-sm font-bold text-gray-900 leading-none truncate">${value}</span>
+                </div>
+            `;
+
+            // Build stats HTML
+            let statsHtml = '';
+
+            // 1. Distance
+            if (activity.distance > 0) {
+                const distVal = formatDistance(activity.distance).replace(' km', '');
+                statsHtml += createStat('Distance', `${distVal} <span class="text-xs font-normal text-gray-400">km</span>`);
+            }
+
+            // 2. Main Metric (Pace/Speed)
+            if (mainValue) {
+                let val = mainValue;
+                let unit = '';
+                if (mainValue.includes(' /km')) {
+                    val = mainValue.replace(' /km', '');
+                    unit = '/km';
+                } else if (mainValue.includes(' km/h')) {
+                    val = mainValue.replace(' km/h', '');
+                    unit = 'km/h';
+                } else if (mainValue.includes(' /100m')) {
+                    val = mainValue.replace(' /100m', '');
+                    unit = '/100m';
+                }
+
+                if (unit) {
+                    statsHtml += createStat(mainLabel, `${val} <span class="text-xs font-normal text-gray-400">${unit}</span>`);
+                } else {
+                    statsHtml += createStat(mainLabel, val);
+                }
+            }
+
+            // 3. Duration
+            statsHtml += createStat('Time', formatDuration(activity.moving_time));
+
+            // 4. Elevation (if significant)
+            if (activity.total_elevation_gain > 10) {
+                statsHtml += createStat('Elev Gain', `${Math.round(activity.total_elevation_gain)} <span class="text-xs font-normal text-gray-400">m</span>`);
+            }
+
+            // Social Stats Section
+            const socialItems = [];
+            if (activity.kudos_count > 0) {
+                socialItems.push(`${activity.kudos_count.toLocaleString()} kudos`);
+            }
+            if (activity.comment_count > 0) {
+                socialItems.push(`${activity.comment_count.toLocaleString()} comments`);
+            }
+
+            let socialHtml = '';
+            if (socialItems.length > 0) {
+                socialHtml = `
+                    <div class="flex items-center gap-2 text-xs font-medium text-gray-400 mt-4 pt-3 border-t border-gray-100">
+                        ${socialItems.join(' <span class="text-gray-300">|</span> ')}
                     </div>
                 `;
+            }
+
+            tile.innerHTML = `
+                <div class="flex flex-col">
+                    <!-- Header Row -->
+                    <div class="flex items-center gap-3 mb-4">
+                        <!-- Icon -->
+                        <div class="w-10 h-10 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center shrink-0">
+                            <i class="fa-solid ${iconClass} text-lg"></i>
+                        </div>
+
+                        <!-- Title & Date -->
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base font-bold text-gray-900 truncate">${activity.name}</h3>
+                            <div class="text-xs font-bold text-gray-400 uppercase tracking-wide">${dateStr}</div>
+                        </div>
+
+                        <!-- Chevron -->
+                        <div class="text-gray-300 group-hover:text-fitness-orange transition-colors pl-2">
+                            <i class="fa-solid fa-chevron-right text-sm"></i>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-4 gap-2">
+                        ${statsHtml}
+                    </div>
+
+                    ${socialHtml}
+                </div>
+            `;
 
             return tile;
         }
@@ -199,6 +274,7 @@
             if (hours > 0) {
                 return `${hours}h ${minutes}m`;
             }
+            // Show seconds if under 1 hour
             return `${minutes}m ${remainingSeconds}s`;
         }
 
@@ -215,7 +291,7 @@
         }
 
         function formatSpeed(distance, timeInSeconds) {
-            if (!distance || !timeInSeconds) return "0.0 km/h";
+            if (!distance || !timeInSeconds) return "0.0";
             const speedInKmh = (distance / 1000) / (timeInSeconds / 3600);
             return `${speedInKmh.toFixed(1)} km/h`;
         }
@@ -232,29 +308,20 @@
             const diffSec = Math.floor((Date.now() - timestamp) / 1000);
             if (diffSec < 60) return 'Just now';
             const min = Math.floor(diffSec / 60);
-            if (min < 60) return min === 1 ? '1 minute ago' : `${min} minutes ago`;
+            if (min < 60) return min === 1 ? '1 min ago' : `${min} mins ago`;
             const hr = Math.floor(min / 60);
-            if (hr < 24) return hr === 1 ? '1 hour ago' : `${hr} hours ago`;
+            if (hr < 24) return hr === 1 ? '1 hr ago' : `${hr} hrs ago`;
             const d = Math.floor(hr / 24);
             return d === 1 ? '1 day ago' : `${d} days ago`;
         }
 
         function saveActivityAndRedirect(activity) {
             // Prevent multiple clicks
-            if (event.currentTarget.classList.contains('loading')) return;
+            if (event.currentTarget.classList.contains('opacity-50')) return;
 
-            // Show loading state only on the arrow icon
-            const arrowIcon = event.currentTarget.querySelector('.w-9.h-9');
-            if (!arrowIcon) return;
-
-            const originalContent = arrowIcon.innerHTML;
-            arrowIcon.innerHTML = `
-                    <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                `;
-            event.currentTarget.classList.add('loading');
+            // Visual feedback
+            const tile = event.currentTarget;
+            tile.classList.add('opacity-50', 'pointer-events-none');
 
             // Store just the activity ID and redirect
             sessionStorage.setItem('selectedActivityId', activity.id);
@@ -280,15 +347,18 @@
         function syncActivities(page = 1) {
             const isLoadMore = page > 1;
             const icon = document.getElementById('sync-icon');
+            const syncText = document.getElementById('sync-text');
 
             if (!isLoadMore) {
                 icon.classList.add('spinner');
+                syncButton.disabled = true;
+                syncText.textContent = 'Syncing...';
             } else {
                 loadMoreButton.disabled = true;
-                loadMoreButton.innerHTML = '<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Loading...';
+                loadMoreButton.innerHTML = '<svg class="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Loading...';
             }
 
-            const minSpinDuration = 1000;
+            const minSpinDuration = 800;
             const startTime = Date.now();
 
             const url = new URL('/api/activities/sync', window.location.origin);
@@ -298,8 +368,6 @@
             fetch(url, { method: 'GET', credentials: 'include' })
                 .then(res => res.json())
                 .then(data => {
-                    console.log('Sync response:', data);
-
                     if (data.activities) {
                         if (page === 1) {
                             allActivities = [];
@@ -315,7 +383,14 @@
 
                         renderNextBatch();
                     } else {
-                        if (page === 1) activitiesGrid.innerHTML = '';
+                        if (page === 1) {
+                            activitiesGrid.innerHTML = `
+                                <div class="text-center py-12 text-gray-400">
+                                    <i class="fa-solid fa-person-running text-4xl mb-3 opacity-20"></i>
+                                    <p>No activities found.</p>
+                                </div>
+                            `;
+                        }
                         hasMoreOnServer = false;
                         renderNextBatch(); // To update button state
                     }
@@ -337,7 +412,7 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    document.getElementById('last-sync').textContent = 'Error fetching sync time';
+                    document.getElementById('last-sync').textContent = 'Sync failed';
                 })
                 .finally(() => {
                     const elapsed = Date.now() - startTime;
@@ -346,6 +421,8 @@
                     if (!isLoadMore) {
                         setTimeout(() => {
                             icon.classList.remove('spinner');
+                            syncButton.disabled = false;
+                            syncText.textContent = 'Sync with Strava';
                         }, remaining);
                     } else {
                         loadMoreButton.disabled = false;
@@ -356,7 +433,7 @@
 
         function updateDisplay() {
             if (lastSyncedTimestamp) {
-                document.getElementById('last-sync').textContent = formatSyncTime(lastSyncedTimestamp);
+                document.getElementById('last-sync').textContent = 'Last sync: ' + formatSyncTime(lastSyncedTimestamp);
             }
         }
 
