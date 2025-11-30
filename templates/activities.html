@@ -172,23 +172,30 @@
 
             // 1. Distance
             if (activity.distance > 0) {
-                const distVal = formatDistance(activity.distance).replace(' km', '');
-                statsHtml += createStat('Distance', `${distVal} <span class="text-xs font-normal text-gray-400">km</span>`);
+                // formatDistance returns "X km" or "X mi". We want to split value and unit.
+                const distStr = formatDistance(activity.distance);
+                const [val, unit] = distStr.split(' ');
+                statsHtml += createStat('Distance', `${val} <span class="text-xs font-normal text-gray-400">${unit}</span>`);
             }
 
             // 2. Main Metric (Pace/Speed)
             if (mainValue) {
                 let val = mainValue;
                 let unit = '';
-                if (mainValue.includes(' /km')) {
-                    val = mainValue.replace(' /km', '');
-                    unit = '/km';
-                } else if (mainValue.includes(' km/h')) {
-                    val = mainValue.replace(' km/h', '');
-                    unit = 'km/h';
-                } else if (mainValue.includes(' /100m')) {
-                    val = mainValue.replace(' /100m', '');
-                    unit = '/100m';
+                // formatPace returns "X:XX /km" or "X:XX /mi"
+                // formatSpeed returns "X.X km/h" or "X.X mph"
+                // formatSwimPace returns "X:XX /100m" or "X:XX /100yd"
+
+                if (mainValue.includes(' /')) {
+                    const parts = mainValue.split(' /');
+                    val = parts[0];
+                    unit = '/' + parts[1];
+                } else if (mainValue.includes(' ')) {
+                    const parts = mainValue.split(' ');
+                    val = parts[0];
+                    unit = parts[1];
+                } else {
+                    val = mainValue;
                 }
 
                 if (unit) {
@@ -203,7 +210,10 @@
 
             // 4. Elevation (if significant)
             if (activity.total_elevation_gain > 10) {
-                statsHtml += createStat('Elev Gain', `${Math.round(activity.total_elevation_gain)} <span class="text-xs font-normal text-gray-400">m</span>`);
+                // formatElevation returns "X m" or "X ft"
+                const elevStr = formatElevation(activity.total_elevation_gain);
+                const [val, unit] = elevStr.split(' ');
+                statsHtml += createStat('Elev Gain', `${val} <span class="text-xs font-normal text-gray-400">${unit}</span>`);
             }
 
             // Social Stats Section
@@ -255,59 +265,6 @@
             `;
 
             return tile;
-        }
-
-        function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            const formattedDate = date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            });
-            const formattedTime = date.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true,
-            });
-            return `${formattedDate}<br>${formattedTime}`;
-        }
-
-        function formatDuration(seconds) {
-            const hours = Math.floor(seconds / 3600);
-            const minutes = Math.floor((seconds % 3600) / 60);
-            const remainingSeconds = seconds % 60;
-
-            if (hours > 0) {
-                return `${hours}h ${minutes}m`;
-            }
-            // Show seconds if under 1 hour
-            return `${minutes}m ${remainingSeconds}s`;
-        }
-
-        function formatDistance(meters) {
-            return (meters / 1000).toFixed(2) + ' km';
-        }
-
-        function formatPace(seconds, distance) {
-            if (!distance) return "0:00";
-            const paceInSeconds = seconds / (distance / 1000);
-            const minutes = Math.floor(paceInSeconds / 60);
-            const remainingSeconds = Math.ceil(paceInSeconds % 60);
-            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')} /km`;
-        }
-
-        function formatSpeed(distance, timeInSeconds) {
-            if (!distance || !timeInSeconds) return "0.0";
-            const speedInKmh = (distance / 1000) / (timeInSeconds / 3600);
-            return `${speedInKmh.toFixed(1)} km/h`;
-        }
-
-        function formatSwimPace(seconds, distance) {
-            if (!distance || distance < 100) return 'N/A';
-            const pacePer100m = seconds / (distance / 100);
-            const minutes = Math.floor(pacePer100m / 60);
-            const secs = Math.round(pacePer100m % 60);
-            return `${minutes}:${secs.toString().padStart(2, '0')} /100m`;
         }
 
         function formatSyncTime(timestamp) {

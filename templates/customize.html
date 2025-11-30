@@ -733,14 +733,14 @@
             updateMetricButtons();
 
             // Update StravaData only for available metrics
-            StravaData.distance = metricsAvailability.distance ? (activityData.distance / 1000).toFixed(2) + ' km' : null;
+            StravaData.distance = metricsAvailability.distance ? formatDistance(activityData.distance) : null;
             StravaData.movingTime = metricsAvailability.movingTime ? formatDuration(activityData.moving_time) : null;
-            StravaData.pace = metricsAvailability.pace ? formatPace(activityData.moving_time, activityData.distance) + ' /km' : null;
-            StravaData.elevationGain = metricsAvailability.elevationGain ? Math.round(activityData.total_elevation_gain) + 'm' : null;
+            StravaData.pace = metricsAvailability.pace ? formatPace(activityData.moving_time, activityData.distance) : null;
+            StravaData.elevationGain = metricsAvailability.elevationGain ? formatElevation(activityData.total_elevation_gain) : null;
             StravaData.avgHeartRate = metricsAvailability.avgHeartRate ? Math.round(activityData.average_heartrate) + ' bpm' : null;
             StravaData.maxHeartRate = metricsAvailability.maxHeartRate ? Math.round(activityData.max_heartrate) + ' bpm' : null;
             StravaData.calories = metricsAvailability.calories ? Math.round(activityData.calories) : null;
-            StravaData.averageSpeed = metricsAvailability.averageSpeed ? (activityData.average_speed * 3.6).toFixed(1) + ' km/h' : null;
+            StravaData.averageSpeed = metricsAvailability.averageSpeed ? formatSpeed(activityData.distance, activityData.moving_time) : null;
             StravaData.map = metricsAvailability.map ? activityData.map : null;
 
             console.log("Processed Strava data:", StravaData);
@@ -767,25 +767,6 @@
                 hour12: true,
             });
             return `${formattedDate} • ${formattedTime}`;
-        }
-
-        function formatDuration(seconds) {
-            const hours = Math.floor(seconds / 3600);
-            const minutes = Math.floor((seconds % 3600) / 60);
-            const remainingSeconds = seconds % 60;
-
-            if (hours > 0) {
-                return `${hours}h ${minutes}m ${remainingSeconds}s`;
-            }
-            return `${minutes}m ${remainingSeconds}s`;
-        }
-
-        function formatPace(seconds, distance) {
-            if (!distance) return "0:00";
-            const paceInSeconds = seconds / (distance / 1000);
-            const minutes = Math.floor(paceInSeconds / 60);
-            const remainingSeconds = Math.ceil(paceInSeconds % 60);
-            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
         }
 
         const canvas = document.getElementById('overlayCanvas');

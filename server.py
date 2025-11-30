@@ -475,45 +475,29 @@ def refresh_access_token(refresh_token):
             },
             timeout=10
         )
-        if response.status_code in {400, 401, 429}:
-            logger.error(f'Token refresh failed with status {response.status_code}')
-            return None
-        if not response.ok:
-            logger.error(f'Unexpected error: {response.status_code}')
-            return None
+        response.raise_for_status()
+        token_data = response.json()
+        
+        # Fetch fresh athlete details to keep DB and session in sync
+        athlete_details = fetch_athlete_details(token_data['access_token'])
+        
         try:
-            token_data = response.json()
-        except (ValueError, TypeError) as e:
-            logger.error(f'Invalid JSON response: {str(e)}')
-            return None
-        if not all(k in token_data for k in ('access_token', 'refresh_token', 'expires_at')):
-            logger.error('Missing fields in token response')
-            return None
-        if not isinstance(token_data['access_token'], str) or not isinstance(token_data['refresh_token'], str):
-            logger.error('Invalid token format')
-            return None
-        if not isinstance(token_data['expires_at'], (int, float)):
-            logger.error('Invalid expires_at format')
-            return None
-        try:
-            athlete.update_from_token(token_data)
-            athlete_details = fetch_athlete_details(token_data['access_token'])
-            if athlete_details:
-                athlete.update_from_athlete_details(athlete_details)
+            athlete.update_from_token(token_data, athlete_details)
             db.session.commit()
             logger.info(f'Token refreshed for athlete {athlete_id}')
         except Exception as e:
             db.session.rollback()
             logger.error(f'DB update failed: {str(e)}')
-            return None
-        return token_data
+            return None, None
+
+        return token_data, athlete_details
     except requests.exceptions.Timeout:
         logger.error('Request timed out')
     except requests.exceptions.RequestException as e:
         logger.error(f'Network error: {str(e)}')
     except Exception as e:
         logger.error(f'Unexpected error: {str(e)}')
-    return None
+    return None, None
 
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -529,18 +513,58 @@ def ensure_valid_token():
     current_time = time.time()
     token_expires_at = session['expires_at']
     time_until_expiry = token_expires_at - current_time
-    if time_until_expiry <= 300:
-        logger.info(f"Token expiring in {int(time_until_expiry)}s, attempting refresh")
-        new_token = refresh_access_token(session.get('refresh_token'))
-        if not new_token:
-            logger.warning("Token refresh failed")
-            session.clear()
-            return False
-        session['access_token'] = new_token['access_token']
-        session['refresh_token'] = new_token['refresh_token']
-        session['expires_at'] = new_token['expires_at']
-        logger.info(f"Token refreshed successfully - New expiry: {datetime.fromtimestamp(new_token['expires_at']).isoformat()}")
-        return True
+    
+    # Check if profile data is stale (older than 1 hour)
+    last_profile_check = session.get('last_profile_check', 0)
+    is_profile_stale = (current_time - last_profile_check) > 3600
+    
+    if time_until_expiry <= 300 or is_profile_stale:
+        if time_until_expiry <= 300:
+            logger.info(f"Token expiring in {int(time_until_expiry)}s, attempting refresh")
+            new_token, athlete_details = refresh_access_token(session.get('refresh_token'))
+            if not new_token:
+                logger.warning("Token refresh failed")
+                session.clear()
+                return False
+                
+            session['access_token'] = new_token['access_token']
+            session['refresh_token'] = new_token['refresh_token']
+            session['expires_at'] = new_token['expires_at']
+            
+            if athlete_details:
+                session['athlete_first_name'] = athlete_details.get('firstname')
+                session['athlete_last_name'] = athlete_details.get('lastname')
+                session['athlete_profile'] = athlete_details.get('profile')
+                session['measurement_preference'] = athlete_details.get('measurement_preference')
+                session['last_profile_check'] = current_time
+                
+            logger.info(f"Token refreshed successfully - New expiry: {datetime.fromtimestamp(new_token['expires_at']).isoformat()}")
+            return True
+            
+        elif is_profile_stale:
+            # Token is valid, but profile might be stale. Fetch just the profile.
+            logger.info("Profile data stale, fetching fresh details")
+            athlete_details = fetch_athlete_details(session['access_token'])
+            if athlete_details:
+                session['athlete_first_name'] = athlete_details.get('firstname')
+                session['athlete_last_name'] = athlete_details.get('lastname')
+                session['athlete_profile'] = athlete_details.get('profile')
+                session['measurement_preference'] = athlete_details.get('measurement_preference')
+                session['last_profile_check'] = current_time
+                
+                # Also update DB
+                try:
+                    athlete_id = session.get('athlete_id')
+                    if athlete_id:
+                        athlete = db.session.get(Athletes, athlete_id)
+                        if athlete:
+                            athlete.update_from_athlete_details(athlete_details)
+                            db.session.commit()
+                except Exception as e:
+                    logger.error(f"Failed to update DB with fresh profile: {e}")
+                    
+            return True
+
     logger.info(f"Token valid – expires in {int(time_until_expiry)}s (at {datetime.fromtimestamp(token_expires_at).isoformat()})")
     return True
 
@@ -702,6 +726,7 @@ def customize():
                         athlete_first_name=session.get("athlete_first_name"),
                         athlete_last_name=session.get("athlete_last_name"),
                         athlete_profile=session.get("athlete_profile"),
+                        measurement_preference=session.get("measurement_preference"),
                         csrf_token=session['csrf_token'])
 
 @limiter.limit("100 per hour", key_func=lambda: session.get("athlete_id", get_remote_address()))
@@ -714,6 +739,7 @@ def activities():
                         athlete_first_name=session.get("athlete_first_name"),
                         athlete_last_name=session.get("athlete_last_name"),
                         athlete_profile=session.get("athlete_profile"),
+                        measurement_preference=session.get("measurement_preference"),
                         csrf_token=session['csrf_token'])
 
 def create_sync_response(activities, page, per_page, sync_log, seconds_remaining, warning=None, using_cached=False):
