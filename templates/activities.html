@@ -70,12 +70,17 @@
     </div>
 </main>
 
-<!-- Load More Button -->
-<div id="load-more-container" class="flex justify-center py-8">
-    <button id="load-more-button"
-        class="px-6 py-2.5 bg-white border border-gray-200 text-gray-600 font-semibold text-sm rounded-full flex items-center gap-2 hover:bg-gray-50 transition-colors hidden shadow-sm">
-        Load More
-    </button>
+<!-- Loading Sentinel / Spinner -->
+<div id="scroll-sentinel" class="flex justify-center py-8 opacity-0 transition-opacity duration-300">
+    <div class="flex items-center gap-2 text-gray-400 text-sm font-medium">
+        <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+        </svg>
+        <span>Loading more...</span>
+    </div>
 </div>
 {% endblock %}
 
@@ -85,7 +90,7 @@
     document.addEventListener('DOMContentLoaded', () => {
 
         const activitiesGrid = document.getElementById('activities-grid');
-        const loadMoreButton = document.getElementById('load-more-button');
+        const sentinel = document.getElementById('scroll-sentinel');
         const syncButton = document.getElementById('sync-button');
         let allActivities = [];
         let displayedCount = 0;
@@ -93,6 +98,7 @@
         const displayBatchSize = 10;
         const apiBatchSize = 30;
         let hasMoreOnServer = true;
+        let isLoading = false;
         let cooldownIntervalId;
 
         function createActivityTile(activity) {
@@ -335,10 +341,21 @@
             nextBatch.forEach(activity => activitiesGrid.appendChild(createActivityTile(activity)));
             displayedCount += nextBatch.length;
 
+            isLoading = false;
+            updateSentinel();
+        }
+
+        function updateSentinel() {
             if (displayedCount < allActivities.length || hasMoreOnServer) {
-                loadMoreButton.classList.remove('hidden');
+                sentinel.classList.remove('hidden');
             } else {
-                loadMoreButton.classList.add('hidden');
+                sentinel.classList.add('hidden');
+            }
+
+            // Hide spinner if not loading
+            if (!isLoading) {
+                sentinel.classList.remove('opacity-100');
+                sentinel.classList.add('opacity-0');
             }
         }
 
@@ -349,13 +366,16 @@
             const icon = document.getElementById('sync-icon');
             const syncText = document.getElementById('sync-text');
 
+            isLoading = true;
+
             if (!isLoadMore) {
                 icon.classList.add('spinner');
                 syncButton.disabled = true;
                 syncText.textContent = 'Syncing...';
             } else {
-                loadMoreButton.disabled = true;
-                loadMoreButton.innerHTML = '<svg class="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Loading...';
+                // Show spinner in sentinel
+                sentinel.classList.remove('opacity-0');
+                sentinel.classList.add('opacity-100');
             }
 
             const minSpinDuration = 800;
@@ -392,7 +412,8 @@
                             `;
                         }
                         hasMoreOnServer = false;
-                        renderNextBatch(); // To update button state
+                        isLoading = false;
+                        updateSentinel();
                     }
 
                     if (data.last_synced) {
@@ -413,6 +434,8 @@
                 .catch(err => {
                     console.error(err);
                     document.getElementById('last-sync').textContent = 'Sync failed';
+                    isLoading = false;
+                    updateSentinel();
                 })
                 .finally(() => {
                     const elapsed = Date.now() - startTime;
@@ -424,9 +447,6 @@
                             syncButton.disabled = false;
                             syncText.textContent = 'Sync with Strava';
                         }, remaining);
-                    } else {
-                        loadMoreButton.disabled = false;
-                        loadMoreButton.textContent = 'Load More';
                     }
                 });
         }
@@ -469,13 +489,29 @@
             syncActivities(1);
         });
 
-        loadMoreButton.addEventListener('click', () => {
-            if (displayedCount < allActivities.length) {
-                renderNextBatch();
-            } else {
-                syncActivities(currentApiPage + 1);
+        // Infinite Scroll Observer
+        const observer = new IntersectionObserver((entries) => {
+            const entry = entries[0];
+            if (entry.isIntersecting && !isLoading) {
+                if (displayedCount < allActivities.length) {
+                    // Load more from local memory
+                    isLoading = true;
+                    // Small delay to show spinner for UX
+                    sentinel.classList.remove('opacity-0');
+                    sentinel.classList.add('opacity-100');
+                    setTimeout(renderNextBatch, 500);
+                } else if (hasMoreOnServer) {
+                    // Fetch more from server
+                    syncActivities(currentApiPage + 1);
+                }
             }
+        }, {
+            root: null,
+            rootMargin: '10px',
+            threshold: 0.1
         });
+
+        observer.observe(sentinel);
 
         // Initial Load
         syncActivities(1);
