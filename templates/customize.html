@@ -47,41 +47,36 @@
 {% endblock %}
 
 {% block content %}
-<main class="flex-grow container mx-auto p-3">
+<main class="flex-grow container mx-auto p-2">
     <div class="max-w-[900px] w-full mx-auto">
         <!-- Activity Info Card (Compact) -->
         <div id="activityInfoCard" class="bg-white rounded-xl shadow-sm p-2">
             <div class="flex justify-between items-center gap-2">
                 {% if demo_mode %}
-                <div
-                    class="flex flex-row items-center w-full gap-2 bg-gradient-to-r from-fitness-orange to-orange-500 rounded-lg py-1.5 px-3 shadow-sm">
-                    <!-- Left: Icon + Label -->
-                    <span
-                        class="flex items-center gap-2 text-sm font-bold text-white uppercase tracking-wide select-none flex-1">
-                        <svg class="w-3 h-3 text-white opacity-90" fill="none" stroke="currentColor" stroke-width="2"
-                            viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" />
-                            <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        </svg>
-                        Demo Mode
-                    </span>
-                    <!-- Right: CTA Link with dynamic text and href -->
-                    <div class="flex justify-end flex-shrink-0">
-                        <a href="{{ '/activities' if authenticated else '/' }}"
-                            class="bg-fitness-green text-white py-1 px-2 rounded text-[10px] font-medium text-center hover:scale-105 transition-transform duration-200 ">
-                            {{ 'Use your own data' if authenticated else 'Get started' }}
-                        </a>
+                <div class="flex flex-col overflow-hidden min-w-0">
+                    <div class="flex items-center gap-2">
+                        <h1 id="activityName" class="text-base text-fitness-dark-gray font-bold truncate leading-tight">
+                        </h1>
+                        <span
+                            class="bg-fitness-orange text-white text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-600 uppercase tracking-wide shadow-sm">
+                            Demo Mode
+                        </span>
                     </div>
+                    <span id="activityDate" class="text-xs text-gray-500 leading-none mt-0.5"></span>
                 </div>
+
+                {% if not authenticated %}
+                <a href="/login" class="shrink-0 hover:scale-105 transition-transform duration-200">
+                    <img src="/static/images/btn_strava_connect_with_orange.svg" alt="Connect with Strava" class="h-8">
+                </a>
+                {% endif %}
                 {% else %}
                 <div class="flex flex-col overflow-hidden min-w-0">
                     <h1 id="activityName" class="text-base text-fitness-dark-gray font-bold truncate leading-tight">
                     </h1>
                     <span id="activityDate" class="text-xs text-gray-500 leading-none mt-0.5"></span>
                 </div>
-                {% endif %}
 
-                {% if not demo_mode %}
                 <a id="stravaLink" href="#" target="_blank"
                     class="bg-fitness-orange text-white py-1.5 px-3 rounded-lg text-[10px] font-medium transition-colors text-center hover:bg-orange-600 shrink-0 uppercase tracking-wide">
                     View on Strava
@@ -91,14 +86,13 @@
         </div>
 
         <!-- Canvas Container -->
-
-        <div class="w-full mx-auto py-3">
-            <div class="bg-white rounded-lg shadow-lg p-2 max-w-md mx-auto flex items-center justify-center">
+        <div class="w-full mx-auto py-2">
+            <div class="bg-white rounded-md shadow-lg p-2 max-w-sm mx-auto flex items-center justify-center">
                 <div class="w-full flex items-center justify-center relative">
                     <canvas id="overlayCanvas"
                         class="block dark-checkerboard rounded-md shadow-md mx-auto w-full aspect-[4/5]"></canvas>
                     <div id="loadingOverlay"
-                        class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-md">
+                        class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
                         <div
                             class="animate-spin rounded-full h-12 w-12 border-4 border-fitness-orange border-t-transparent">
                         </div>
@@ -107,17 +101,15 @@
             </div>
         </div>
 
-
-
         <!-- Options Card -->
-        <div class="bg-gradient-to-br from-white to-gray-100 rounded-xl shadow-xl p-4">
+        <div class="bg-white from-white to-gray-100 rounded-lg shadow-xl p-2">
             <!-- Section Contents -->
             <div id="textSection" class="section-content space-y-2">
 
                 <!-- Unified Controls Container -->
                 <div class="flex justify-center items-end flex-wrap gap-2">
                     <!-- Preset Options Dropdown -->
-                    <select id="presetSelect" class="border-2 border-fitness-green bg-white text-fitness-gray rounded-lg 
+                    <select id="presetSelect" class="border-2 border-fitness-green bg-white text-fitness-gray rounded-lg
          h-12 text-sm text-center cursor-pointer 
            appearance-none focus:ring-0 focus:outline-none pr-6">
                         <option value="simple">Simple</option>
@@ -243,7 +235,7 @@
             <div id="copyButtonsContainer" class="flex flex-row gap-2 mt-4 justify-center">
                 <div id="copyTextContainer" class="flex-1 flex flex-col items-center gap-1">
                     <button id="copyTextBtn"
-                        class="w-14 h-14 bg-black/70 hover:bg-opacity-90 text-white rounded-xl font-medium transition-colors flex items-center justify-center">
+                        class="w-14 h-14 bg-black/70 hover:bg-opacity-90 text-white rounded-lg font-medium transition-colors flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -254,7 +246,7 @@
                 </div>
                 <div id="copyImageContainer" class="flex-1 flex flex-col items-center gap-1">
                     <button id="copyImageBtn"
-                        class="w-14 h-14 bg-black/70 hover:bg-opacity-90 text-white rounded-xl font-medium transition-colors flex items-center justify-center">
+                        class="w-14 h-14 bg-black/70 hover:bg-opacity-90 text-white rounded-lg font-medium transition-colors flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -265,7 +257,7 @@
                 </div>
                 <div id="saveImageContainer" class="flex-1 flex flex-col items-center gap-1">
                     <button id="saveImageBtn"
-                        class="w-14 h-14 bg-black/70 hover:bg-opacity-90 text-white rounded-xl font-medium transition-colors flex items-center justify-center">
+                        class="w-14 h-14 bg-black/70 hover:bg-opacity-90 text-white rounded-lg font-medium transition-colors flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -289,7 +281,7 @@
 <div id="imageSaveModal"
     class="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div
-        class="relative bg-white rounded-xl shadow-2xl w-full max-w-sm max-h-[90vh] flex flex-col items-center overflow-hidden">
+        class="relative bg-white rounded-lg shadow-2xl w-full max-w-sm max-h-[90vh] flex flex-col items-center overflow-hidden">
 
         <!-- Close Button -->
         <button id="closeModalBtn"
@@ -661,7 +653,7 @@
 
                 // Show loading state
                 activityName.textContent = 'Loading...';
-                activityName.classList.remove('font-bold', 'px-2', 'py-1', 'rounded-md', 'inline-block');
+                activityName.classList.remove('font-bold', 'px-2', 'py-1', 'rounded-lg', 'inline-block');
                 loadingOverlay.classList.remove('hidden');
 
                 // Fetch activity data from server
