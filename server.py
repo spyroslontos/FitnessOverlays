@@ -2,10 +2,11 @@ from flask import Flask, render_template, request, redirect, session, url_for, j
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
-import requests
+import httpx
 import logging
 from logging.handlers import TimedRotatingFileHandler
-from requests_oauthlib import OAuth2Session
+import secrets
+import urllib.parse
 import secrets
 import time
 from datetime import datetime, timezone, timedelta
@@ -204,7 +205,7 @@ class Activities(db.Model):
     athlete_id = db.Column(db.BigInteger, db.ForeignKey('athletes.athlete_id'), index=True, nullable=False)
     data = db.Column(db.JSON, nullable=False)
     last_synced = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
-    SYNC_COOLDOWN = timedelta(minutes=5)
+    SYNC_COOLDOWN = timedelta(minutes=3)
 
     def __repr__(self):
         return f'<Activities {self.athlete_id}:{self.activity_id}>'
@@ -274,12 +275,12 @@ class ActivityLists(db.Model):
 
 def fetch_athlete_details(access_token: str) -> dict | None:
     try:
-        response = requests.get(
+        response = httpx.get(
             "https://www.strava.com/api/v3/athlete",
             headers={"Authorization": f"Bearer {access_token}"},
-            timeout=30
+            timeout=30.0
         )
-        if response.ok:
+        if response.is_success:
             return response.json()
         logger.error(f"Failed to fetch athlete details: {response.status_code}")
     except Exception as e:
@@ -459,7 +460,7 @@ def refresh_access_token(refresh_token):
         logger.error('Refresh token mismatch')
         return None
     try:
-        response = requests.post(
+        response = httpx.post(
             "https://www.strava.com/oauth/token",
             data={
                 "client_id": CLIENT_ID,
@@ -467,7 +468,7 @@ def refresh_access_token(refresh_token):
                 "grant_type": "refresh_token",
                 "refresh_token": refresh_token
             },
-            timeout=10
+            timeout=10.0
         )
         response.raise_for_status()
         token_data = response.json()
@@ -485,9 +486,9 @@ def refresh_access_token(refresh_token):
             return None, None
 
         return token_data, athlete_details
-    except requests.exceptions.Timeout:
+    except httpx.TimeoutException:
         logger.error('Request timed out')
-    except requests.exceptions.RequestException as e:
+    except httpx.RequestError as e:
         logger.error(f'Network error: {str(e)}')
     except Exception as e:
         logger.error(f'Unexpected error: {str(e)}')
@@ -647,13 +648,20 @@ def login():
             
         callback_url = url_for('callback', _external=True)
         logger.info(f"Generated callback URL: {callback_url}")
-        oauth = OAuth2Session(
-            CLIENT_ID,
-            redirect_uri=callback_url,
-            scope=["read,activity:read_all,profile:read_all"]
-        )
-        authorization_url, state = oauth.authorization_url(AUTH_BASE_URL)
+        
+        # Manual OAuth2 URL construction
+        state = secrets.token_urlsafe(16)
         session['oauth_state'] = state
+        
+        params = {
+            "client_id": CLIENT_ID,
+            "redirect_uri": callback_url,
+            "response_type": "code",
+            "scope": "read,activity:read_all,profile:read_all",
+            "state": state
+        }
+        authorization_url = f"{AUTH_BASE_URL}?{urllib.parse.urlencode(params)}"
+        
         return redirect(authorization_url)
     except Exception as e:
         logger.error(f"Login error: {e}")
@@ -666,19 +674,40 @@ def callback():
         if 'error' in request.args:
             logger.info(f"User denied Strava authorization - IP: {get_remote_address()}")
             return redirect('/')
+            
+        # Verify state
+        state = request.args.get('state')
+        if not state or state != session.get('oauth_state'):
+             logger.error(f"Invalid state parameter - IP: {get_remote_address()}")
+             return redirect('/')
+
+        code = request.args.get('code')
+        if not code:
+            logger.error(f"Missing code parameter - IP: {get_remote_address()}")
+            return redirect('/')
+
         callback_url = url_for('callback', _external=True)
         logger.info(f"Using dynamic callback URL in callback handler: {callback_url}") 
-        oauth = OAuth2Session(
-            CLIENT_ID,
-            state=session.get('oauth_state'),
-            redirect_uri=callback_url
-        )
-        token = oauth.fetch_token(
-            TOKEN_URL,
-            client_secret=CLIENT_SECRET,
-            authorization_response=request.url,
-            include_client_id=True
-        )
+        
+        # Exchange code for token using httpx
+        try:
+            token_response = httpx.post(
+                TOKEN_URL,
+                data={
+                    "client_id": CLIENT_ID,
+                    "client_secret": CLIENT_SECRET,
+                    "code": code,
+                    "grant_type": "authorization_code",
+                    "redirect_uri": callback_url
+                },
+                timeout=10.0
+            )
+            token_response.raise_for_status()
+            token = token_response.json()
+        except httpx.HTTPError as e:
+             logger.error(f"Token exchange failed: {e}")
+             return redirect('/')
+
         athlete_data = token.get('athlete', {})
         athlete_id = athlete_data.get('id')
         logger.info(f"Athlete Data: {athlete_data}")
@@ -789,13 +818,17 @@ def sync_activities():
     if sync_log and sync_log.last_synced:
         etag_source = f"{athlete_id}:{page}:{per_page}:{sync_log.last_synced.isoformat()}"
         etag = hashlib.md5(etag_source.encode()).hexdigest()
-        
+    else:
+        etag = None
+    
+    # Only return 304 if sync is NOT allowed (cooldown active) AND ETag matches
+    if not sync_instance.is_sync_allowed() and sync_log:
         # Check If-None-Match header for conditional request
-        if request.headers.get('If-None-Match') == etag:
+        if etag and request.headers.get('If-None-Match') == etag:
             response = make_response('', 304)
             response.headers['ETag'] = etag
-            response.headers['Cache-Control'] = 'private, max-age=120'
-            logger.info(f"Returning 304 Not Modified for activities sync - Athlete ID: {athlete_id}")
+            response.headers['Cache-Control'] = 'private, max-age=180'
+            logger.info(f"Returning 304 Not Modified for activities sync (Cooldown Active) - Athlete ID: {athlete_id}")
             return response
     
     if not sync_instance.is_sync_allowed() and sync_log:
@@ -805,17 +838,17 @@ def sync_activities():
             etag_source = f"{athlete_id}:{page}:{per_page}:{sync_log.last_synced.isoformat()}"
             etag = hashlib.md5(etag_source.encode()).hexdigest()
             response.headers['ETag'] = etag
-        response.headers['Cache-Control'] = 'private, max-age=120'
+        response.headers['Cache-Control'] = 'private, max-age=180'
         return response
         
     try:
-        response = requests.get(
+        response = httpx.get(
             "https://www.strava.com/api/v3/athlete/activities",
             headers={"Authorization": f"Bearer {session['access_token']}"},
             params={"page": page, "per_page": per_page},
-            timeout=15
+            timeout=15.0
         )
-        if not response.ok:
+        if not response.is_success:
             response_data = create_sync_response(
                 sync_log.data if sync_log else [],
                 page,
@@ -830,7 +863,7 @@ def sync_activities():
                 etag_source = f"{athlete_id}:{page}:{per_page}:{sync_log.last_synced.isoformat()}"
                 etag = hashlib.md5(etag_source.encode()).hexdigest()
                 flask_response.headers['ETag'] = etag
-            flask_response.headers['Cache-Control'] = 'private, max-age=120'
+            flask_response.headers['Cache-Control'] = 'private, max-age=180'
             return flask_response
             
         activities = response.json()
@@ -857,7 +890,7 @@ def sync_activities():
             etag_source = f"{athlete_id}:{page}:{per_page}:{current_time.isoformat()}"
             etag = hashlib.md5(etag_source.encode()).hexdigest()
             flask_response.headers['ETag'] = etag
-            flask_response.headers['Cache-Control'] = 'private, max-age=120'
+            flask_response.headers['Cache-Control'] = 'private, max-age=180'
             
             return flask_response
         except Exception as db_error:
@@ -865,7 +898,7 @@ def sync_activities():
             logger.error(f"Database error during sync: {db_error}")
             response_data = create_sync_response(activities, page, per_page, sync_log, seconds_remaining, using_cached=False)
             flask_response = make_response(jsonify(response_data))
-            flask_response.headers['Cache-Control'] = 'private, max-age=120'
+            flask_response.headers['Cache-Control'] = 'private, max-age=180'
             return flask_response
     except Exception as e:
         logger.error(f"Sync error: {e}")
@@ -883,7 +916,7 @@ def sync_activities():
             etag_source = f"{athlete_id}:{page}:{per_page}:{sync_log.last_synced.isoformat()}"
             etag = hashlib.md5(etag_source.encode()).hexdigest()
             flask_response.headers['ETag'] = etag
-        flask_response.headers['Cache-Control'] = 'private, max-age=120'
+        flask_response.headers['Cache-Control'] = 'private, max-age=180'
         return flask_response
 
 @app.route('/')
@@ -931,18 +964,20 @@ def get_activity(activity_id):
     if activity and activity.last_synced:
         etag_source = f"{athlete_id}:{activity_id}:{activity.last_synced.isoformat()}"
         etag = hashlib.md5(etag_source.encode()).hexdigest()
-        
-        # Check If-None-Match header for conditional request
-        if request.headers.get('If-None-Match') == etag:
-            response = make_response('', 304)
-            response.headers['ETag'] = etag
-            response.headers['Cache-Control'] = 'private, max-age=300'
-            logger.info(f"Returning 304 Not Modified for activity {activity_id} - Athlete ID: {athlete_id}")
-            return response
+    else:
+        etag = None
     
     if activity:
         seconds_remaining = activity.get_cooldown_remaining()
         if seconds_remaining > 0:
+            # Only return 304 if cooldown is active AND ETag matches
+            if etag and request.headers.get('If-None-Match') == etag:
+                response = make_response('', 304)
+                response.headers['ETag'] = etag
+                response.headers['Cache-Control'] = 'private, max-age=300'
+                logger.info(f"Returning 304 Not Modified for activity {activity_id} (Cooldown Active) - Athlete ID: {athlete_id}")
+                return response
+
             logger.info(f"Returning cached activity {activity_id} - {seconds_remaining}s cooldown remaining")
             response_data = {
                 "activity": activity.data,
@@ -954,21 +989,19 @@ def get_activity(activity_id):
                 "cached": True
             }
             flask_response = make_response(jsonify(response_data))
-            if activity.last_synced:
-                etag_source = f"{athlete_id}:{activity_id}:{activity.last_synced.isoformat()}"
-                etag = hashlib.md5(etag_source.encode()).hexdigest()
+            if etag:
                 flask_response.headers['ETag'] = etag
             flask_response.headers['Cache-Control'] = 'private, max-age=300'
             return flask_response
             
     try:
         logger.info(f"Fetching fresh data for activity {activity_id} from Strava")
-        response = requests.get(
+        response = httpx.get(
             f"https://www.strava.com/api/v3/activities/{activity_id}",
             headers={"Authorization": f"Bearer {session['access_token']}"},
-            timeout=15
+            timeout=15.0
         )
-        if not response.ok:
+        if not response.is_success:
             logger.error(f"Strava API error for activity {activity_id}: {response.status_code}")
             if activity:
                 seconds_remaining = activity.get_cooldown_remaining()
