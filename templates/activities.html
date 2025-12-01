@@ -381,8 +381,23 @@
                     }
 
                     if (data.cooldown) {
-                        if (data.cooldown.active) {
-                            startCooldownBar(data.cooldown.seconds_remaining, data.cooldown.total_cooldown);
+                        let secondsRemaining = data.cooldown.seconds_remaining;
+
+                        if (data.last_synced) {
+                            const lastSyncedTime = new Date(data.last_synced).getTime();
+                            const now = Date.now();
+                            const elapsedSeconds = (now - lastSyncedTime) / 1000;
+                            const calculatedRemaining = data.cooldown.total_cooldown - elapsedSeconds;
+
+                            if (calculatedRemaining > 0) {
+                                secondsRemaining = Math.round(calculatedRemaining);
+                            } else {
+                                secondsRemaining = 0;
+                            }
+                        }
+
+                        if (secondsRemaining > 0) {
+                            startCooldownBar(secondsRemaining, data.cooldown.total_cooldown);
                         } else {
                             hideCooldownBar();
                         }
