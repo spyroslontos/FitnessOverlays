@@ -8,8 +8,7 @@ Werkzeug>=2.0 # Ensure compatible Werkzeug version
 psycopg2-binary
 
 # API and OAuth dependencies
-requests
-requests-oauthlib  # OAuth handling
+httpx
 
 # Environment and config
 python-dotenv # Secure environment variable handling
