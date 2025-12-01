@@ -514,14 +514,21 @@ def refresh_access_token(refresh_token):
 
 @app.route('/logout', methods=['POST'])
 def logout():
-    logger.info(f"Athlete logged out - ID: {session['athlete_id']} - Name: {session['athlete_first_name']} {session['athlete_last_name']} - IP: {get_remote_address()}")
+    logger.info(f"Athlete logged out - ID: {session.get('athlete_id')} - Name: {session.get('athlete_first_name')} {session.get('athlete_last_name')} - IP: {get_remote_address()}")
     session.clear()
+    session['logged_out'] = True
+    session.permanent = True
     return redirect('/')
 
 def ensure_valid_token():
     if 'access_token' not in session or 'expires_at' not in session:
         logger.warning("Missing token data in session")
+        # Preserve logged_out state if it exists, otherwise clear everything
+        was_logged_out = session.get('logged_out')
         session.clear()
+        if was_logged_out:
+            session['logged_out'] = True
+            session.permanent = True
         return False
     current_time = time.time()
     token_expires_at = session['expires_at']
@@ -585,6 +592,8 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'athlete_id' not in session:
+            if session.get('logged_out'):
+                return render_template('auth_required.html')
             return redirect(url_for('login'))
         athlete = db.session.get(Athletes, session['athlete_id'])
         if not athlete:
@@ -652,6 +661,9 @@ limiter.error_handler = ratelimit_handler
 @limiter.limit("5 per minute")
 def login():
     try:
+        # Clear any logged_out flag on manual login attempt
+        session.pop('logged_out', None)
+            
         callback_url = url_for('callback', _external=True)
         logger.info(f"Generated callback URL: {callback_url}")
         oauth = OAuth2Session(
