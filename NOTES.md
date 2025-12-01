@@ -10,6 +10,13 @@ pip install -r requirements.txt
 python server.py
 ```
 
+## Dependencies
+
+```bash
+pip install -r requirements.txt
+pip freeze > requirements-frozen.txt
+```
+
 ## Docker (Production Parity)
 
 ```bash
@@ -36,13 +43,6 @@ docker stop fitnessoverlays-web && docker rm fitnessoverlays-web
 ```bash
 npx @tailwindcss/cli -i ./static/css/input.css -o ./static/css/tailwind.css --watch
 npx @tailwindcss/cli -i ./static/css/input.css -o ./static/css/tailwind.css --minify
-```
-
-## Dependencies
-
-```bash
-pip install -r requirements.txt
-pip freeze > requirements-frozen.txt
 ```
 
 ## Strava Webhooks
