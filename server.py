@@ -17,6 +17,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import mimetypes
 import json
+import hashlib
 
 # --- Environment Variable Validation ---
 def check_env_vars():
@@ -336,10 +337,6 @@ def after_request(response: Response) -> Response:
         'frame-ancestors': ["'none'"],
         'form-action': ["'self'"],
         'base-uri': ["'self'"],
-        'manifest-src': ["'self'"],
-        'media-src': ["'self'"],
-        'object-src': ["'none'"],
-        'worker-src': ["'self'"]
     }
 
     if ENVIRONMENT == "prod":
@@ -349,46 +346,30 @@ def after_request(response: Response) -> Response:
     response.headers['Content-Security-Policy'] = csp_string
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
     response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
 
-    response.headers['Permissions-Policy'] = (
-        'accelerometer=(), autoplay=(), camera=(), cross-origin-isolated=(), display-capture=(), '
-        'encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), '
-        'magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), '
-        'publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), xr-spatial-tracking=()'
-    )
+    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
 
     response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
     response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
 
+    if 'Cache-Control' in response.headers:
+        return response
+    
     path = request.path
-
-    is_logged_in = False
-    athlete_id = session.get("athlete_id")
-    if athlete_id:
-        athlete = db.session.get(Athletes, athlete_id)
-        if athlete:
-            is_logged_in = True
-        else:
-            session.clear()
-
     if path.startswith('/static/images/'):
         response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
     elif path.startswith('/static/'):
         response.headers['Cache-Control'] = 'public, max-age=300'
-    elif is_logged_in:
+    elif session.get('athlete_id'):
         if path == '/customize':
             response.headers['Cache-Control'] = 'private, max-age=600'
         else:
             response.headers['Cache-Control'] = 'private, no-store'
             response.headers['Pragma'] = 'no-cache'
     else:
-        if path == '/':
-            response.headers['Cache-Control'] = 'public, max-age=300'
-        else:
-            response.headers['Cache-Control'] = 'public, max-age=60'
+        cache_time = 300 if path == '/' else 60
+        response.headers['Cache-Control'] = f'public, max-age={cache_time}'
 
     response.headers.pop('X-Powered-By', None)
     response.headers.pop('Server', None)
@@ -803,8 +784,30 @@ def sync_activities():
         per_page=per_page
     ).first()
     seconds_remaining = sync_instance.get_cooldown_remaining()
+    
+    # Generate ETag from last_synced timestamp and athlete_id
+    if sync_log and sync_log.last_synced:
+        etag_source = f"{athlete_id}:{page}:{per_page}:{sync_log.last_synced.isoformat()}"
+        etag = hashlib.md5(etag_source.encode()).hexdigest()
+        
+        # Check If-None-Match header for conditional request
+        if request.headers.get('If-None-Match') == etag:
+            response = make_response('', 304)
+            response.headers['ETag'] = etag
+            response.headers['Cache-Control'] = 'private, max-age=120'
+            logger.info(f"Returning 304 Not Modified for activities sync - Athlete ID: {athlete_id}")
+            return response
+    
     if not sync_instance.is_sync_allowed() and sync_log:
-        return jsonify(create_sync_response(sync_log.data if sync_log else [], page, per_page, sync_log, seconds_remaining, using_cached=True))
+        response_data = create_sync_response(sync_log.data if sync_log else [], page, per_page, sync_log, seconds_remaining, using_cached=True)
+        response = make_response(jsonify(response_data))
+        if sync_log and sync_log.last_synced:
+            etag_source = f"{athlete_id}:{page}:{per_page}:{sync_log.last_synced.isoformat()}"
+            etag = hashlib.md5(etag_source.encode()).hexdigest()
+            response.headers['ETag'] = etag
+        response.headers['Cache-Control'] = 'private, max-age=120'
+        return response
+        
     try:
         response = requests.get(
             "https://www.strava.com/api/v3/athlete/activities",
@@ -813,7 +816,7 @@ def sync_activities():
             timeout=15
         )
         if not response.ok:
-            return jsonify(create_sync_response(
+            response_data = create_sync_response(
                 sync_log.data if sync_log else [],
                 page,
                 per_page,
@@ -821,7 +824,15 @@ def sync_activities():
                 seconds_remaining,
                 warning="Failed to fetch fresh data, showing cached data" if sync_log else None,
                 using_cached=True
-            )), response.status_code if not sync_log else 200
+            )
+            flask_response = make_response(jsonify(response_data), response.status_code if not sync_log else 200)
+            if sync_log and sync_log.last_synced:
+                etag_source = f"{athlete_id}:{page}:{per_page}:{sync_log.last_synced.isoformat()}"
+                etag = hashlib.md5(etag_source.encode()).hexdigest()
+                flask_response.headers['ETag'] = etag
+            flask_response.headers['Cache-Control'] = 'private, max-age=120'
+            return flask_response
+            
         activities = response.json()
         current_time = datetime.now(timezone.utc)
         try:
@@ -838,14 +849,27 @@ def sync_activities():
                 )
                 db.session.add(sync_log)
             db.session.commit()
-            return jsonify(create_sync_response(activities, page, per_page, sync_log, seconds_remaining, using_cached=False))
+            
+            response_data = create_sync_response(activities, page, per_page, sync_log, seconds_remaining, using_cached=False)
+            flask_response = make_response(jsonify(response_data))
+            
+            # Generate fresh ETag
+            etag_source = f"{athlete_id}:{page}:{per_page}:{current_time.isoformat()}"
+            etag = hashlib.md5(etag_source.encode()).hexdigest()
+            flask_response.headers['ETag'] = etag
+            flask_response.headers['Cache-Control'] = 'private, max-age=120'
+            
+            return flask_response
         except Exception as db_error:
             db.session.rollback()
             logger.error(f"Database error during sync: {db_error}")
-            return jsonify(create_sync_response(activities, page, per_page, sync_log, seconds_remaining, using_cached=False))
+            response_data = create_sync_response(activities, page, per_page, sync_log, seconds_remaining, using_cached=False)
+            flask_response = make_response(jsonify(response_data))
+            flask_response.headers['Cache-Control'] = 'private, max-age=120'
+            return flask_response
     except Exception as e:
         logger.error(f"Sync error: {e}")
-        return jsonify(create_sync_response(
+        response_data = create_sync_response(
             sync_log.data if sync_log else [],
             page,
             per_page,
@@ -853,7 +877,14 @@ def sync_activities():
             seconds_remaining,
             warning="Failed to sync activities",
             using_cached=True
-        )), 500
+        )
+        flask_response = make_response(jsonify(response_data), 500)
+        if sync_log and sync_log.last_synced:
+            etag_source = f"{athlete_id}:{page}:{per_page}:{sync_log.last_synced.isoformat()}"
+            etag = hashlib.md5(etag_source.encode()).hexdigest()
+            flask_response.headers['ETag'] = etag
+        flask_response.headers['Cache-Control'] = 'private, max-age=120'
+        return flask_response
 
 @app.route('/')
 def index():
@@ -895,11 +926,25 @@ def get_activity(activity_id):
         athlete_id=athlete_id,
         activity_id=activity_id
     ).first()
+    
+    # Generate ETag from last_synced timestamp and activity_id
+    if activity and activity.last_synced:
+        etag_source = f"{athlete_id}:{activity_id}:{activity.last_synced.isoformat()}"
+        etag = hashlib.md5(etag_source.encode()).hexdigest()
+        
+        # Check If-None-Match header for conditional request
+        if request.headers.get('If-None-Match') == etag:
+            response = make_response('', 304)
+            response.headers['ETag'] = etag
+            response.headers['Cache-Control'] = 'private, max-age=300'
+            logger.info(f"Returning 304 Not Modified for activity {activity_id} - Athlete ID: {athlete_id}")
+            return response
+    
     if activity:
         seconds_remaining = activity.get_cooldown_remaining()
         if seconds_remaining > 0:
             logger.info(f"Returning cached activity {activity_id} - {seconds_remaining}s cooldown remaining")
-            return jsonify({
+            response_data = {
                 "activity": activity.data,
                 "cooldown": {
                     "active": True,
@@ -907,7 +952,15 @@ def get_activity(activity_id):
                     "total_cooldown": Activities.SYNC_COOLDOWN.total_seconds()
                 },
                 "cached": True
-            })
+            }
+            flask_response = make_response(jsonify(response_data))
+            if activity.last_synced:
+                etag_source = f"{athlete_id}:{activity_id}:{activity.last_synced.isoformat()}"
+                etag = hashlib.md5(etag_source.encode()).hexdigest()
+                flask_response.headers['ETag'] = etag
+            flask_response.headers['Cache-Control'] = 'private, max-age=300'
+            return flask_response
+            
     try:
         logger.info(f"Fetching fresh data for activity {activity_id} from Strava")
         response = requests.get(
@@ -919,7 +972,7 @@ def get_activity(activity_id):
             logger.error(f"Strava API error for activity {activity_id}: {response.status_code}")
             if activity:
                 seconds_remaining = activity.get_cooldown_remaining()
-                return jsonify({
+                response_data = {
                     "activity": activity.data,
                     "cooldown": {
                         "active": True,
@@ -928,8 +981,16 @@ def get_activity(activity_id):
                     },
                     "cached": True,
                     "warning": "Failed to fetch fresh data, showing cached data"
-                }), response.status_code
+                }
+                flask_response = make_response(jsonify(response_data), response.status_code)
+                if activity.last_synced:
+                    etag_source = f"{athlete_id}:{activity_id}:{activity.last_synced.isoformat()}"
+                    etag = hashlib.md5(etag_source.encode()).hexdigest()
+                    flask_response.headers['ETag'] = etag
+                flask_response.headers['Cache-Control'] = 'private, max-age=300'
+                return flask_response
             return jsonify({"error": "Failed to fetch activity data"}), response.status_code
+            
         activity_data = response.json()
         current_time = datetime.now(timezone.utc)
         try:
@@ -946,7 +1007,8 @@ def get_activity(activity_id):
                 db.session.add(activity)
             db.session.commit()
             logger.info(f"Successfully cached activity {activity_id}")
-            return jsonify({
+            
+            response_data = {
                 "activity": activity_data,
                 "cooldown": {
                     "active": False,
@@ -954,7 +1016,16 @@ def get_activity(activity_id):
                     "total_cooldown": Activities.SYNC_COOLDOWN.total_seconds()
                 },
                 "cached": False
-            })
+            }
+            flask_response = make_response(jsonify(response_data))
+            
+            # Generate fresh ETag
+            etag_source = f"{athlete_id}:{activity_id}:{current_time.isoformat()}"
+            etag = hashlib.md5(etag_source.encode()).hexdigest()
+            flask_response.headers['ETag'] = etag
+            flask_response.headers['Cache-Control'] = 'private, max-age=300'
+            
+            return flask_response
         except Exception as db_error:
             db.session.rollback()
             logger.error(f'Database error caching activity {activity_id}: {str(db_error)}')
@@ -963,7 +1034,7 @@ def get_activity(activity_id):
         logger.error(f'Error fetching activity {activity_id}: {str(e)}')
         if activity:
             seconds_remaining = activity.get_cooldown_remaining()
-            return jsonify({
+            response_data = {
                 "activity": activity.data,
                 "cooldown": {
                     "active": True,
@@ -972,7 +1043,14 @@ def get_activity(activity_id):
                 },
                 "cached": True,
                 "warning": "Failed to fetch fresh data, showing cached data"
-            }), 500
+            }
+            flask_response = make_response(jsonify(response_data), 500)
+            if activity.last_synced:
+                etag_source = f"{athlete_id}:{activity_id}:{activity.last_synced.isoformat()}"
+                etag = hashlib.md5(etag_source.encode()).hexdigest()
+                flask_response.headers['ETag'] = etag
+            flask_response.headers['Cache-Control'] = 'private, max-age=300'
+            return flask_response
         return jsonify({"error": "Failed to fetch activity data"}), 500
 
 def delete_user_data(athlete_id):
@@ -1044,7 +1122,6 @@ def robots_txt():
 @app.route('/llms.txt')
 def llms_txt():
     return send_from_directory('static', 'llms.txt')
-
 
 @limiter.limit("30 per hour")
 @app.route('/demo')
