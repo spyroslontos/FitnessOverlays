@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for, jsonify, send_from_directory, Response, make_response
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify, Response, make_response
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
@@ -11,12 +11,10 @@ import secrets
 import time
 from datetime import datetime, timezone, timedelta
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.utils import safe_join
 from werkzeug.middleware.proxy_fix import ProxyFix
 from functools import wraps
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import mimetypes
 import json
 import hashlib
 
@@ -57,7 +55,7 @@ else:
         del os.environ['OAUTHLIB_INSECURE_TRANSPORT']
     DEBUG_MODE = False
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 CORS(app, supports_credentials=True)
 
 app.secret_key = os.getenv("SECRET_KEY")
@@ -310,9 +308,14 @@ def after_request(response: Response) -> Response:
     
     # Static files: CORS + long cache
     if path.startswith('/static/'):
-        response.headers.update({'Cross-Origin-Resource-Policy': 'cross-origin', 'Access-Control-Allow-Origin': '*'})
-        cache = 'public, max-age=31536000, must-revalidate' if path.endswith(('.css', '.js')) else 'public, max-age=31536000, immutable'
-        response.headers['Cache-Control'] = cache
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Cross-Origin-Resource-Policy'] = 'cross-origin'
+
+        if path.endswith(('.css', '.js')):
+            response.headers['Cache-Control'] = 'public, max-age=31536000, must-revalidate'
+        else:
+            response.headers['Cache-Control'] = 'public, max-age=31536000'
+
         return response
     
     # CSP sources
@@ -354,43 +357,6 @@ def after_request(response: Response) -> Response:
     response.headers.pop('X-Powered-By', None)
     response.headers.pop('Server', None)
     return response
-
-ALLOWED_EXTENSIONS = {'.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico'}
-STATIC_DIR = 'static'
-
-@app.route('/static/<path:path>')
-def serve_static(path):
-    client_ip = get_remote_address()
-    ext = os.path.splitext(path.lower())[1]
-
-    if ext not in ALLOWED_EXTENSIONS:
-        logger.warning(f'Blocked disallowed file type: {path} - IP: {client_ip}')
-        return jsonify({"error": "File type not allowed"}), 403
-
-    safe_path = safe_join(STATIC_DIR, path)
-    if not safe_path:
-        logger.warning(f'Directory traversal attempt: {path} - IP: {client_ip}')
-        return jsonify({"error": "Invalid file path"}), 403
-
-    abs_safe_path = os.path.abspath(safe_path)
-    abs_static_root = os.path.abspath(STATIC_DIR)
-
-    if not abs_safe_path.startswith(abs_static_root):
-        logger.warning(f'Path traversal detected: {path} - IP: {client_ip}')
-        return jsonify({"error": "Invalid file path"}), 403
-
-    if not os.path.exists(abs_safe_path):
-        return jsonify({"error": "File not found"}), 404
-
-    try:
-        mime_type = mimetypes.guess_type(path)[0] or 'application/octet-stream'
-        response = make_response(send_from_directory(STATIC_DIR, path, mimetype=mime_type))
-        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
-        return response
-
-    except Exception as e:
-        logger.error(f'Failed to serve file: {path} - IP: {client_ip} - Error: {e}')
-        return jsonify({"error": "Error accessing file"}), 500
 
 def generate_csrf_token():
     if 'csrf_token' not in session:
@@ -1125,15 +1091,15 @@ def page_not_found(e):
 
 @app.route("/favicon.ico")
 def favicon():
-    return send_from_directory(os.path.join("static", "images"), "FitnessOverlaysLogo.ico", mimetype="image/vnd.microsoft.icon")
+    return redirect(url_for('static', filename='images/FitnessOverlaysLogo.ico'), code=302)
 
 @app.route('/robots.txt')
 def robots_txt():
-    return send_from_directory('static', 'robots.txt')
+    return redirect(url_for('static', filename='robots.txt'), code=302)
 
 @app.route('/llms.txt')
 def llms_txt():
-    return send_from_directory('static', 'llms.txt')
+    return redirect(url_for('static', filename='llms.txt'), code=302)
 
 @limiter.limit("30 per hour")
 @app.route('/demo')
