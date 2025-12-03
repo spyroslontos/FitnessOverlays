@@ -79,12 +79,20 @@
             "@type": "Answer",
             "text": "After customizing your overlay, simply copy the overlay image which automatically has a transparent background. You can then overlay it on your photos or videos in Instagram Stories, Reels, TikTok, or any other platform. No background removal needed!"
           }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I use my FitnessOverlays Strava overlay in Instagram Stories?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Connect your Strava account in FitnessOverlays, pick an activity, customize your overlay with your favorite stats and colors, then download the transparent PNG and add it as a sticker on top of your background in Instagram Stories, just like a Strava stats sticker but fully customized."
+          }
         }
       ]
     }
 </script>
 
-<main class="flex-grow w-full">
+<main class="grow w-full">
 
     <section class="w-full text-center relative z-10 fade-in py-8 md:py-12 bg-gray-100">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-0">
@@ -93,8 +101,8 @@
                 Create Instagram-Ready Strava Overlays With Transparent Backgrounds
             </h1>
             <p class="text-base sm:text-lg md:text-xl text-fitness-gray max-w-2xl mx-auto">
-                Generate customizable overlays for Strava runs, rides, and workouts. Export clean, transparent visuals
-                for Instagram, Reels, TikTok, and more.
+                Generate customizable overlays for Strava runs, rides, and workouts. Create Strava-style stats stickers
+                and export clean, transparent visuals for Instagram Stories, Reels, TikTok, and more.
             </p>
         </div>
 
@@ -172,7 +180,7 @@
 
                 <div id="default-carousel" class="relative mx-auto w-full max-w-[300px] px-4 sm:px-0"
                     data-carousel="slide" data-carousel-interval="5000">
-                    <div class="relative overflow-hidden rounded-lg drop-shadow-lg aspect-[9/16]">
+                    <div class="relative overflow-hidden rounded-lg drop-shadow-lg aspect-9/16">
                         <div class="hidden duration-700 ease-in-out" data-carousel-item="active">
                             <img src="/static/images/influencer-dusseldorf-running-club.JPG" loading="lazy"
                                 class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 rounded-lg"
@@ -202,19 +210,19 @@
 
                     <div class="mt-4 flex justify-center space-x-3 rtl:space-x-reverse">
                         <button type="button"
-                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray"
+                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-current:bg-fitness-dark-gray"
                             aria-current="true" aria-label="Slide 1" data-carousel-slide-to="0"></button>
                         <button type="button"
-                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray"
+                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-current:bg-fitness-dark-gray"
                             aria-current="false" aria-label="Slide 2" data-carousel-slide-to="1"></button>
                         <button type="button"
-                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray"
+                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-current:bg-fitness-dark-gray"
                             aria-current="false" aria-label="Slide 3" data-carousel-slide-to="2"></button>
                         <button type="button"
-                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray"
+                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-current:bg-fitness-dark-gray"
                             aria-current="false" aria-label="Slide 4" data-carousel-slide-to="3"></button>
                         <button type="button"
-                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-[current=true]:bg-fitness-dark-gray"
+                            class="w-3 h-3 rounded-full bg-fitness-light-gray aria-current:bg-fitness-dark-gray"
                             aria-current="false" aria-label="Slide 5" data-carousel-slide-to="4"></button>
                     </div>
                 </div>
@@ -226,7 +234,8 @@
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-6">
                 <h2 class="text-4xl md:text-5xl font-bold text-fitness-dark-gray">How It Works</h2>
-                <p class="mt-4 text-lg text-fitness-gray">Simple steps to make your activities share-worthy.</p>
+                <p class="mt-4 text-lg text-fitness-gray">Turn any Strava activity into a custom overlay for Instagram
+                    Stories in a few simple steps.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
@@ -235,13 +244,13 @@
                     class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
                     <div class="flex justify-center mb-6">
                         <div
-                            class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
+                            class="h-16 w-16 flex items-center justify-center rounded-full bg-linear-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
                             <i class="fas fa-link text-2xl"></i>
                         </div>
                     </div>
-                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">1. Connect</h3>
-                    <p class="mt-2 text-center text-fitness-gray">Click the Strava button to securely link your account.
-                        We only access activity data.</p>
+                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">1. Connect Strava</h3>
+                    <p class="mt-2 text-center text-fitness-gray">Log in with Strava so we can pull your runs, rides,
+                        and workouts for your overlay.</p>
                 </div>
 
                 <!-- Step 2 -->
@@ -249,13 +258,13 @@
                     class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
                     <div class="flex justify-center mb-6">
                         <div
-                            class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
+                            class="h-16 w-16 flex items-center justify-center rounded-full bg-linear-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
                             <i class="fas fa-list-ul text-2xl"></i>
                         </div>
                     </div>
-                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">2. Select Activity</h3>
-                    <p class="mt-2 text-center text-fitness-gray">Browse your recent activities and select the one you
-                        want to transform into an overlay.</p>
+                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">2. Pick an Activity</h3>
+                    <p class="mt-2 text-center text-fitness-gray">Choose the Strava activity you want to turn into an
+                        Instagram Story overlay or stats sticker style graphic.</p>
                 </div>
 
                 <!-- Step 3 -->
@@ -263,13 +272,13 @@
                     class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
                     <div class="flex justify-center mb-6">
                         <div
-                            class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
+                            class="h-16 w-16 flex items-center justify-center rounded-full bg-linear-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
                             <i class="fas fa-palette text-2xl"></i>
                         </div>
                     </div>
-                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">3. Customize</h3>
-                    <p class="mt-2 text-center text-fitness-gray">Choose stats to show, pick colors, adjust text size,
-                        alignment, and columns for the perfect look.</p>
+                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">3. Design Your Overlay</h3>
+                    <p class="mt-2 text-center text-fitness-gray">Select stats, colors, fonts, and layout to match your
+                        brand or IG aesthetic. Create a clean, transparent Strava overlay in your own style.</p>
                 </div>
 
                 <!-- Step 4 -->
@@ -277,13 +286,14 @@
                     class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
                     <div class="flex justify-center mb-6">
                         <div
-                            class="h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
+                            class="h-16 w-16 flex items-center justify-center rounded-full bg-linear-to-br from-fitness-green to-fitness-dark-green text-white shadow-md">
                             <i class="fas fa-share-square text-2xl"></i>
                         </div>
                     </div>
-                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">4. Copy & Share</h3>
-                    <p class="mt-2 text-center text-fitness-gray">Copy the overlay image (transparent background) or
-                        text, and overlay it on your Images or Videos.</p>
+                    <h3 class="text-xl font-semibold text-center text-fitness-dark-gray">4. Export &amp; Share</h3>
+                    <p class="mt-2 text-center text-fitness-gray">Copy or download the transparent PNG and add it as a
+                        sticker in Instagram Stories, Reels, or TikTok, just like a Strava stats sticker but fully
+                        customized.</p>
                 </div>
             </div>
         </div>
@@ -293,23 +303,24 @@
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-8">
                 <h2 class="text-4xl md:text-5xl font-bold text-fitness-dark-gray">Top Features of Our Strava Overlay
-                    Generator</h2>
+                    &amp; Stats Sticker Generator</h2>
                 <p class="mt-4 text-lg text-fitness-gray">Everything you need to make your Strava stats pop.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                 <div
                     class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
                     <div
-                        class="flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white mx-auto mb-4 text-3xl shadow-md">
+                        class="flex items-center justify-center h-20 w-20 rounded-full bg-linear-to-br from-fitness-green to-fitness-dark-green text-white mx-auto mb-4 text-3xl shadow-md">
                         <i class="fas fa-image"></i>
                     </div>
                     <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Transparent Backgrounds</h3>
-                    <p class="text-fitness-gray">Your overlays blend seamlessly with any Instagram Story background.</p>
+                    <p class="text-fitness-gray">Your overlays blend seamlessly with any Instagram Story background or
+                        Strava stats sticker style layout.</p>
                 </div>
                 <div
                     class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
                     <div
-                        class="flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white mx-auto mb-4 text-3xl shadow-md">
+                        class="flex items-center justify-center h-20 w-20 rounded-full bg-linear-to-br from-fitness-green to-fitness-dark-green text-white mx-auto mb-4 text-3xl shadow-md">
                         <i class="fas fa-text-height"></i>
                     </div>
                     <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Full Customization</h3>
@@ -318,7 +329,7 @@
                 <div
                     class="bg-white p-4 rounded-2xl border border-fitness-light-gray shadow-lg hover:shadow-2xl hover:-translate-y-1 transition duration-300">
                     <div
-                        class="flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-fitness-green to-fitness-dark-green text-white mx-auto mb-4 text-3xl shadow-md">
+                        class="flex items-center justify-center h-20 w-20 rounded-full bg-linear-to-br from-fitness-green to-fitness-dark-green text-white mx-auto mb-4 text-3xl shadow-md">
                         <i class="fas fa-bolt"></i>
                     </div>
                     <h3 class="text-2xl font-semibold text-fitness-dark-gray mb-2">Quick & Easy</h3>
@@ -378,22 +389,6 @@
                     <button type="button"
                         class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
                         onclick="toggleFAQ(this)">
-                        Is it free?
-                        <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
-                    </button>
-                    <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
-                        <div class="mt-2 text-gray-600 pt-2">
-                            Yes! FitnessOverlays is completely free to use. We believe in making fitness visualization
-                            accessible to
-                            everyone.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-lg shadow-md p-4 border border-fitness-light-gray">
-                    <button type="button"
-                        class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
-                        onclick="toggleFAQ(this)">
                         What data does it access?
                         <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
                     </button>
@@ -403,6 +398,46 @@
                             make
                             your
                             experience better. We don't change anything on your account.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4 border border-fitness-light-gray">
+                    <button type="button"
+                        class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                        onclick="toggleFAQ(this)">
+                        How do I use my overlay in Instagram Stories (like a Strava stats sticker)?
+                        <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
+                    </button>
+                    <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
+                        <div class="mt-2 text-gray-600 pt-2">
+                            <ol class="list-decimal list-inside space-y-1">
+                                <li>Connect your Strava account in FitnessOverlays and select the activity you want to
+                                    share.</li>
+                                <li>Customize your Strava overlay (stats, colors, layout) and copy or download the
+                                    transparent PNG.</li>
+                                <li>Open Instagram and create a new Story with your background photo or video.</li>
+                                <li>Add your FitnessOverlays image from your camera roll as a sticker and position it
+                                    like a Strava stats sticker over your background.</li>
+                            </ol>
+                            <p class="mt-2">This gives you full control over how your Strava activity appears on
+                                Instagram Stories while avoiding the default orange Strava share image.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4 border border-fitness-light-gray">
+                    <button type="button"
+                        class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                        onclick="toggleFAQ(this)">
+                        Is it free?
+                        <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
+                    </button>
+                    <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
+                        <div class="mt-2 text-gray-600 pt-2">
+                            Yes! FitnessOverlays is completely free to use. We believe in making fitness visualization
+                            accessible to
+                            everyone.
                         </div>
                     </div>
                 </div>
@@ -454,15 +489,40 @@
                     <button type="button"
                         class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
                         onclick="toggleFAQ(this)">
+                        How do I use my overlay in Instagram Stories (like a Strava stats sticker)?
+                        <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
+                    </button>
+                    <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
+                        <div class="mt-2 text-gray-600 pt-2">
+                            <ol class="list-decimal list-inside space-y-1">
+                                <li>Connect your Strava account in FitnessOverlays and select the activity you want to
+                                    share.</li>
+                                <li>Customize your Strava overlay (stats, colors, layout) and copy or download the
+                                    transparent PNG.</li>
+                                <li>Open Instagram and create a new Story with your background photo or video.</li>
+                                <li>Add your FitnessOverlays image from your camera roll as a sticker and position it
+                                    like a Strava stats sticker over your background.</li>
+                            </ol>
+                            <p class="mt-2">This gives you full control over how your Strava activity appears on
+                                Instagram Stories while avoiding the default orange Strava share image.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4 border border-fitness-light-gray">
+                    <button type="button"
+                        class="w-full text-left text-xl font-semibold text-fitness-dark-gray focus:outline-none rounded flex justify-between items-center"
+                        onclick="toggleFAQ(this)">
                         How do I report a bug?
                         <span class="ml-2 text-fitness-green text-2xl transition-transform duration-300">+</span>
                     </button>
                     <div class="faq-answer overflow-hidden transition-all duration-300 ease-in-out max-h-0">
                         <div class="mt-2 text-gray-600 pt-2">
-                            If you encounter any issues, please report them on our
+                            If you encounter any issues, you can let me know on the
                             <a href="https://github.com/spyroslontos/FitnessOverlays" target="_blank"
-                                class="text-fitness-green hover:underline">GitHub repository</a>.
-                            We appreciate your help in making FitnessOverlays better!
+                                class="text-fitness-green hover:underline">FitnessOverlays GitHub page</a>
+                            by clicking "Issues" and briefly describing what went wrong.
+                            If you're not familiar with GitHub, you can also reach out using the contact details in the footer.
                         </div>
                     </div>
                 </div>
