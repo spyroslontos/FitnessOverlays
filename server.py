@@ -364,14 +364,19 @@ def after_request(response: Response) -> Response:
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
 
     path = request.path
-    if path.startswith('/static/images/'):
-        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    if path.startswith('/static/'):
+        response.headers['Cross-Origin-Resource-Policy'] = 'cross-origin'
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        if path.startswith('/static/images/'):
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        elif path.endswith(('.css', '.js')):
+            response.headers['Cache-Control'] = 'public, max-age=31536000, must-revalidate'
+        else:
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
         return response
 
     if 'Cache-Control' in response.headers:
         return response
-    elif path.startswith('/static/'):
-        response.headers['Cache-Control'] = 'public, max-age=300'
     elif session.get('athlete_id'):
         if path == '/customize':
             response.headers['Cache-Control'] = 'private, max-age=600'
