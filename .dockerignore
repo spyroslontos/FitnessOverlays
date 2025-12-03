@@ -1,7 +1,6 @@
 # Virtual environment
 .fitnessoverlays-venv/
-venv/
-env/
+.venv/
 
 # Python cache
 __pycache__/
@@ -27,11 +26,6 @@ npm-debug.log*
 .env
 .env.*
 *.env
-
-# Local DB file (should use a volume or external DB in production)
-activities.db
-*.db
-*.sqlite*
 
 # Git folder
 .git/

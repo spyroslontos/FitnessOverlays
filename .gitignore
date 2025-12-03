@@ -1,4 +1,5 @@
 # Environment
+.fitnessoverlays-venv/
 /.venv/
 /venv/
 .env
@@ -18,12 +19,6 @@ npm-debug.log*
 /vscode/
 .vscode/
 /.idea/
-
-# Databases
-/db/
-/instance/
-/activities/
-*.db
 
 # Node.js / Build artifacts
 /node_modules/

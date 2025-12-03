@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Spyroslon/FitnessOverlays.git"
+    "url": "git+https://github.com/spyroslontos/FitnessOverlays.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Spyroslon/FitnessOverlays/issues"
+    "url": "https://github.com/spyroslontos/FitnessOverlays/issues"
   },
-  "homepage": "https://github.com/Spyroslon/FitnessOverlays#readme",
+  "homepage": "https://github.com/spyroslontos/FitnessOverlays#readme",
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.11",
     "tailwindcss": "^4.1.17"
