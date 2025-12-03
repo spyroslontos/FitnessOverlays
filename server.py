@@ -306,87 +306,51 @@ def shutdown_session(exception=None):
 
 @app.after_request
 def after_request(response: Response) -> Response:
-    # Enforces security headers, CSP, and cache-control on all responses
-    csp = {
+    path = request.path
+    
+    # Static files: CORS + long cache
+    if path.startswith('/static/'):
+        response.headers.update({'Cross-Origin-Resource-Policy': 'cross-origin', 'Access-Control-Allow-Origin': '*'})
+        cache = 'public, max-age=31536000, must-revalidate' if path.endswith(('.css', '.js')) else 'public, max-age=31536000, immutable'
+        response.headers['Cache-Control'] = cache
+        return response
+    
+    # CSP sources
+    csp_base = {
         'default-src': ["'self'"],
-        'script-src': [
-            "'self'",
-            "'unsafe-inline'",
-            "cdn.tailwindcss.com",
-            "www.googletagmanager.com",
-            "www.google-analytics.com",
-            "static.cloudflareinsights.com",
-            "unpkg.com"
-        ],
-        'style-src': [
-            "'self'",
-            "'unsafe-inline'",
-            "fonts.googleapis.com",
-            "cdnjs.cloudflare.com"
-        ],
-        'font-src': [
-            "'self'",
-            "fonts.gstatic.com",
-            "cdnjs.cloudflare.com"
-        ],
-        'img-src': [
-            "'self'",
-            "data:",
-            "*.strava.com",
-            "dgalywyr863hv.cloudfront.net",
-            "www.googletagmanager.com",
-            "www.google-analytics.com"
-        ],
-        'connect-src': [
-            "'self'",
-            "www.strava.com",
-            "strava.com",
-            "www.google-analytics.com",
-            "region1.google-analytics.com"
-        ],
+        'script-src': ["'self'", "'unsafe-inline'", "www.googletagmanager.com", "www.google-analytics.com", "static.cloudflareinsights.com", "unpkg.com"],
+        'style-src': ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "cdnjs.cloudflare.com"],
+        'font-src': ["'self'", "fonts.gstatic.com", "cdnjs.cloudflare.com"],
+        'img-src': ["'self'", "data:", "*.strava.com", "dgalywyr863hv.cloudfront.net", "www.googletagmanager.com", "www.google-analytics.com"],
+        'connect-src': ["'self'", "www.strava.com", "strava.com", "www.google-analytics.com", "region1.google-analytics.com"],
         'frame-ancestors': ["'none'"],
         'form-action': ["'self'"],
         'base-uri': ["'self'"],
     }
-
-    if ENVIRONMENT == "prod":
-        csp['script-src'] = [src for src in csp['script-src'] if src != "cdn.tailwindcss.com"]
-
-    csp_string = '; '.join(f"{k} {' '.join(v)}" for k, v in csp.items())
-    response.headers['Content-Security-Policy'] = csp_string
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-
-    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
-
-    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
-    response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
-    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-
-    path = request.path
-    if path.startswith('/static/'):
-        response.headers['Cross-Origin-Resource-Policy'] = 'cross-origin'
-        response.headers['Access-Control-Allow-Origin'] = '*'
-        if path.startswith('/static/images/'):
-            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
-        elif path.endswith(('.css', '.js')):
-            response.headers['Cache-Control'] = 'public, max-age=31536000, must-revalidate'
+    if ENVIRONMENT != "prod":
+        csp_base['script-src'].append("cdn.tailwindcss.com")
+    
+    # Security headers
+    response.headers.update({
+        'Content-Security-Policy': '; '.join(f"{k} {' '.join(v)}" for k, v in csp_base.items()),
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+        'X-Content-Type-Options': 'nosniff',
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Resource-Policy': 'same-origin',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+    })
+    
+    # Cache-Control (if not already set)
+    if 'Cache-Control' not in response.headers:
+        if session.get('athlete_id'):
+            response.headers['Cache-Control'] = 'private, max-age=600' if path == '/customize' else 'private, no-store'
+            if path != '/customize':
+                response.headers['Pragma'] = 'no-cache'
         else:
-            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
-        return response
-
-    if 'Cache-Control' in response.headers:
-        return response
-    elif session.get('athlete_id'):
-        if path == '/customize':
-            response.headers['Cache-Control'] = 'private, max-age=600'
-        else:
-            response.headers['Cache-Control'] = 'private, no-store'
-            response.headers['Pragma'] = 'no-cache'
-    else:
-        cache_time = 300 if path == '/' else 60
-        response.headers['Cache-Control'] = f'public, max-age={cache_time}'
-
+            response.headers['Cache-Control'] = f"public, max-age={300 if path == '/' else 60}"
+    
+    # Remove server fingerprints
     response.headers.pop('X-Powered-By', None)
     response.headers.pop('Server', None)
     return response
