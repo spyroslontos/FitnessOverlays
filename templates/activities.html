@@ -373,14 +373,14 @@
                         updateSentinel();
                     }
 
-                    if (data.last_synced) {
+                    if (data.last_synced && page === 1) {
                         lastSyncedTimestamp = new Date(data.last_synced).getTime();
                         updateDisplay();
-                    } else {
+                    } else if (page === 1) {
                         document.getElementById('last-sync').textContent = 'Never synced';
                     }
 
-                    if (data.cooldown) {
+                    if (data.cooldown && page === 1) {
                         let secondsRemaining = data.cooldown.seconds_remaining;
 
                         if (data.last_synced) {
