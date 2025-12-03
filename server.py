@@ -254,8 +254,8 @@ class ActivityLists(db.Model):
     ITEMS_PER_PAGE = 30
 
     @classmethod
-    def get_last_sync(cls, athlete_id):
-        last_sync = cls.query.filter_by(athlete_id=athlete_id).order_by(cls.last_synced.desc()).first()
+    def get_last_sync(cls, athlete_id, page=1, per_page=30):
+        last_sync = cls.query.filter_by(athlete_id=athlete_id, page=page, per_page=per_page).order_by(cls.last_synced.desc()).first()
         if last_sync and last_sync.last_synced:
             if last_sync.last_synced.tzinfo is None:
                 return last_sync.last_synced.replace(tzinfo=timezone.utc)
@@ -263,7 +263,7 @@ class ActivityLists(db.Model):
         return None
 
     def is_sync_allowed(self):
-        last_sync = self.get_last_sync(self.athlete_id)
+        last_sync = self.get_last_sync(self.athlete_id, self.page, self.per_page)
         if not last_sync:
             return True
         current_time = datetime.now(timezone.utc)
@@ -271,7 +271,7 @@ class ActivityLists(db.Model):
         return time_since_sync > self.SYNC_COOLDOWN
 
     def get_cooldown_remaining(self):
-        last_sync = self.get_last_sync(self.athlete_id)
+        last_sync = self.get_last_sync(self.athlete_id, self.page, self.per_page)
         if not last_sync:
             return 0
         current_time = datetime.now(timezone.utc)
@@ -751,7 +751,7 @@ def sync_activities():
         return jsonify({"error": "Not authenticated"}), 401
     page = max(1, request.args.get('page', 1, type=int))
     per_page = min(request.args.get('per_page', 30, type=int), ActivityLists.ITEMS_PER_PAGE)
-    sync_instance = ActivityLists(athlete_id=athlete_id)
+    sync_instance = ActivityLists(athlete_id=athlete_id, page=page, per_page=per_page)
     sync_log = ActivityLists.query.filter_by(
         athlete_id=athlete_id,
         page=page,
