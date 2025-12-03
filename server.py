@@ -109,6 +109,15 @@ root_logger.setLevel(logging.INFO)
 
 logger = logging.getLogger(__name__)
 
+# Load demo data once at startup
+DEMO_ACTIVITY_DATA = {}
+try:
+    with open('static/demo/activity_demo.json', 'r', encoding='utf-8') as f:
+        DEMO_ACTIVITY_DATA = json.load(f)
+    logger.info("Loaded demo activity data")
+except Exception as e:
+    logger.error(f"Failed to load demo activity data: {e}")
+
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -1161,8 +1170,7 @@ def llms_txt():
 @app.route('/demo')
 def demo():
     logger.info(f"Demo page accessed - IP: {get_remote_address()}")
-    with open('static/demo/activity_demo.json', 'r', encoding='utf-8') as f:
-        activity = json.load(f)
+    activity = DEMO_ACTIVITY_DATA
     is_authenticated = False
     athlete_id = session.get("athlete_id")
     if athlete_id:
