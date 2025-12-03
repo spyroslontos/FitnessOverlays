@@ -354,12 +354,13 @@ def after_request(response: Response) -> Response:
     response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
 
-    if 'Cache-Control' in response.headers:
-        return response
-    
     path = request.path
     if path.startswith('/static/images/'):
         response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        return response
+
+    if 'Cache-Control' in response.headers:
+        return response
     elif path.startswith('/static/'):
         response.headers['Cache-Control'] = 'public, max-age=300'
     elif session.get('athlete_id'):
@@ -1205,8 +1206,8 @@ def sitemap_xml():
         <url>
             <loc>https://fitnessoverlays.com/demo</loc>
             {f'<lastmod>{get_lastmod("templates/customize.html")}</lastmod>' if get_lastmod("templates/customize.html") else ''}
-            <changefreq>monthly</changefreq>
-            <priority>0.9</priority>
+            <changefreq>weekly</changefreq>
+            <priority>1.0</priority>
         </url>
     </urlset>'''
     return Response(sitemap, mimetype='application/xml')
