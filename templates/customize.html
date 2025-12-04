@@ -50,35 +50,28 @@
 <main class="grow container mx-auto p-2">
     <div class="max-w-[900px] w-full mx-auto">
         <!-- Activity Info Card (Compact) -->
-        <div id="activityInfoCard" class="bg-white rounded-xl shadow-sm p-2">
+        <div id="activityInfoCard" class="bg-white rounded-xl shadow-sm p-2 max-w-sm mx-auto">
             <div class="flex justify-between items-center gap-2">
                 {% if demo_mode %}
-                <div class="flex flex-col overflow-hidden min-w-0">
-                    <div class="flex items-center gap-2">
-                        <h1 id="activityName" class="text-base text-fitness-dark-gray font-bold truncate leading-tight">
-                        </h1>
-                        <span
-                            class="bg-fitness-orange text-white text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-600 uppercase tracking-wide shadow-sm">
-                            Demo Mode
-                        </span>
-                    </div>
+                <div class="flex flex-col min-w-0">
+                    <h1 id="activityName" class="text-base text-fitness-dark-gray font-bold break-words leading-tight">
+                    </h1>
                     <span id="activityDate" class="text-xs text-gray-500 leading-none mt-0.5"></span>
                 </div>
 
-                {% if not authenticated %}
-                <a href="/login" class="shrink-0 hover:scale-105 transition-transform duration-200">
-                    <img src="/static/images/btn_strava_connect_with_orange.svg" alt="Connect with Strava" class="h-8">
-                </a>
-                {% endif %}
+                <span
+                    class="bg-fitness-green text-white text-xs font-bold px-2.5 py-1 rounded-md border-2 border-green-600 uppercase tracking-wide shadow-md shrink-0">
+                    Demo Mode
+                </span>
                 {% else %}
-                <div class="flex flex-col overflow-hidden min-w-0">
-                    <h1 id="activityName" class="text-base text-fitness-dark-gray font-bold truncate leading-tight">
+                <div class="flex flex-col min-w-0">
+                    <h1 id="activityName" class="text-base text-fitness-dark-gray !font-bold break-words leading-tight">
                     </h1>
                     <span id="activityDate" class="text-xs text-gray-500 leading-none mt-0.5"></span>
                 </div>
 
                 <a id="stravaLink" href="#" target="_blank"
-                    class="bg-fitness-orange text-white py-1.5 px-3 rounded-lg text-[10px] font-medium transition-colors text-center hover:bg-orange-600 shrink-0 uppercase tracking-wide">
+                    class="bg-fitness-orange text-white py-1.5 px-3 rounded-lg text-xs font-bold transition-colors text-center hover:bg-orange-600 shrink-0 uppercase tracking-wide">
                     View on Strava
                 </a>
                 {% endif %}
