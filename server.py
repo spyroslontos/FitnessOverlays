@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, url_for, jsonify, Response, make_response
-from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 import os
 import httpx
@@ -7,20 +9,18 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 import secrets
 import urllib.parse
-import secrets
 import time
 from datetime import datetime, timezone, timedelta
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.middleware.proxy_fix import ProxyFix
 from functools import wraps
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 import json
 import hashlib
 
-# --- Environment Variable Validation ---
+load_dotenv()
+
+# --- Validate environment variables immediately ---
 def check_env_vars():
-    required_vars = [
+    required = [
         "CLIENT_ID",
         "CLIENT_SECRET",
         "AUTH_BASE_URL",
@@ -29,15 +29,16 @@ def check_env_vars():
         "SQLALCHEMY_DATABASE_URI",
         "RATELIMIT_STORAGE_URI",
         "SECRET_KEY",
-        "ENVIRONMENT"
+        "ENVIRONMENT",
     ]
-    missing_vars = [var for var in required_vars if not os.getenv(var)]
-    if missing_vars:
-        raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
-    logging.info('All required environment variables are set.')
+    missing = [v for v in required if not os.getenv(v)]
+    if missing:
+        raise ValueError(f"Missing required environment variables: {', '.join(missing)}")
+    logging.info("All required environment variables are set.")
 
-load_dotenv()
+check_env_vars()
 
+# --- Load variables AFTER validation ---
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 AUTH_BASE_URL = os.getenv("AUTH_BASE_URL")
@@ -46,66 +47,46 @@ VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
 SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
 RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI")
 
+# --- Environment-based settings ---
 ENVIRONMENT = os.getenv("ENVIRONMENT", "prod").lower()
-if ENVIRONMENT == "dev":
-    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Allow OAuth without HTTPS in development
-    DEBUG_MODE = True
+DEBUG_MODE = ENVIRONMENT == "dev"
+
+if DEBUG_MODE:
+    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 else:
-    if 'OAUTHLIB_INSECURE_TRANSPORT' in os.environ:
-        del os.environ['OAUTHLIB_INSECURE_TRANSPORT']
-    DEBUG_MODE = False
+    os.environ.pop("OAUTHLIB_INSECURE_TRANSPORT", None)
 
+# --- App init ---
 app = Flask(__name__, static_folder="static", static_url_path="/static")
-CORS(app, supports_credentials=True)
-
 app.secret_key = os.getenv("SECRET_KEY")
-if not app.secret_key:
-    raise ValueError("SECRET_KEY environment variable not set. Cannot run application securely.")
 
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=3)
-check_env_vars()
+# app.wsgi_app = ProxyFix(app.wsgi_app, x_for=3)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2, x_proto=2, x_host=2)
 
-if not os.path.exists('logs'):
-    os.makedirs('logs', exist_ok=True)
+os.makedirs('logs', exist_ok=True)
 
 log_file = 'logs/app.log'
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-def custom_namer(default_name):
-    dir_name, file_name = os.path.split(default_name)
-    try:
-        base_name, timestamp_suffix = file_name.split('.log.')
-        new_name = os.path.join(dir_name, f"{base_name}.{timestamp_suffix}.log")
-    except ValueError:
-        new_name = default_name + ".rotated"
-        logging.error(f"Could not parse rotated log filename: {default_name}. Using fallback: {new_name}")
-    return new_name
-
-timed_handler = TimedRotatingFileHandler(
-    log_file,
-    when='midnight',
-    interval=1,
-    backupCount=30,
-    encoding='utf-8',
-    delay=False,
-    utc=False
+file_handler = TimedRotatingFileHandler(
+    'logs/app.log',
+    when='midnight',       # rotate daily
+    backupCount=30,        # keep 30 days
+    encoding='utf-8'
 )
-timed_handler.namer = custom_namer
-timed_handler.setFormatter(formatter)
-timed_handler.setLevel(logging.INFO)
 
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-stream_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.INFO)
 
-root_logger = logging.getLogger()
-root_logger.handlers.clear()
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+console_handler.setLevel(logging.INFO)
 
-root_logger.addHandler(timed_handler)
-root_logger.addHandler(stream_handler)
-root_logger.setLevel(logging.INFO)
-
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
+logger.handlers.clear()
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+logger.setLevel(logging.INFO)
 
 # Load demo data once at startup
 DEMO_ACTIVITY_DATA = {}
@@ -113,20 +94,12 @@ try:
     with open('static/demo/activity_demo.json', 'r', encoding='utf-8') as f:
         DEMO_ACTIVITY_DATA = json.load(f)
     logger.info("Loaded demo activity data")
-except Exception as e:
-    logger.error(f"Failed to load demo activity data: {e}")
+except FileNotFoundError:
+    logger.warning("Demo data file not found, skipping demo data")
+except json.JSONDecodeError as e:
+    logger.error(f"Invalid JSON in demo data file: {e}")
 
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_size': 2,
-    'pool_recycle': 3600,
-    'pool_pre_ping': True,
-    'max_overflow': 3,
-    'pool_timeout': 30
-}
-
+# Session config
 app.config.update(
     SESSION_COOKIE_SECURE=True,
     SESSION_COOKIE_HTTPONLY=True,
@@ -138,6 +111,17 @@ if ENVIRONMENT != "prod":
     app.config.update(
         SESSION_COOKIE_SECURE=False
     )
+
+# DB config
+app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_size': 2,
+    'pool_recycle': 3600,
+    'pool_pre_ping': True,
+    'max_overflow': 3,
+    'pool_timeout': 30
+}
 db = SQLAlchemy(app)
 
 # --- Models ---
@@ -306,7 +290,6 @@ def shutdown_session(exception=None):
 def after_request(response: Response) -> Response:
     path = request.path
     
-    # Static files: CORS + long cache
     if path.startswith('/static/'):
         response.headers['Access-Control-Allow-Origin'] = '*'
         response.headers['Cross-Origin-Resource-Policy'] = 'cross-origin'
@@ -530,8 +513,6 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
-
-
 
 CACHED_USER_COUNT = None
 LAST_COUNT_UPDATE = None

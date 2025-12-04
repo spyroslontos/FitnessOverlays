@@ -1,20 +1,18 @@
 # Core dependencies
 flask
-flask-limiter # Rate limiting for security
-flask-cors # Secure cross-origin handling
-Flask-WTF # Form handling and CSRF protection
+flask-limiter
 Flask-SQLAlchemy>=3.0
-Werkzeug>=2.0 # Ensure compatible Werkzeug version
+Werkzeug>=2.0 # Required for ProxyFix to get real client IP behind Cloudflare/Render
 psycopg2-binary
 
 # API and OAuth dependencies
 httpx
 
 # Environment and config
-python-dotenv # Secure environment variable handling
+python-dotenv
 
 # WSGI Server for Production
 gunicorn
 
-# Redis support for flask-limiter
+# Redis client (for Flask-Limiter backend)
 redis
