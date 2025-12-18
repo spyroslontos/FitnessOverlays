@@ -99,6 +99,7 @@
         const apiBatchSize = 30;
         let hasMoreOnServer = true;
         let isLoading = false;
+        let hasError = false;
         let cooldownIntervalId;
 
         function createActivityTile(activity) {
@@ -319,6 +320,7 @@
         let lastSyncedTimestamp = null;
 
         function syncActivities(page = 1) {
+            hasError = false;
             const isLoadMore = page > 1;
             const icon = document.getElementById('sync-icon');
             const syncText = document.getElementById('sync-text');
@@ -405,6 +407,7 @@
                 })
                 .catch(err => {
                     console.error(err);
+                    hasError = true;
                     document.getElementById('last-sync').textContent = 'Sync failed';
                     isLoading = false;
                     updateSentinel();
@@ -464,7 +467,7 @@
         // Infinite Scroll Observer
         const observer = new IntersectionObserver((entries) => {
             const entry = entries[0];
-            if (entry.isIntersecting && !isLoading) {
+            if (entry.isIntersecting && !isLoading && !hasError) {
                 if (displayedCount < allActivities.length) {
                     // Load more from local memory
                     isLoading = true;
