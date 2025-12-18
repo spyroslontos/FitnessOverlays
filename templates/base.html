@@ -8,7 +8,7 @@
     <meta name="copyright" content="FitnessOverlays - Copyright (c) 2025 Spyros Lontos">
     <link rel="license" href="https://www.gnu.org/licenses/agpl-3.0.html">
     <meta name="csrf-token" content="{{ session['csrf_token'] }}">
-    <title>Strava Stickers & Overlays for Instagram Stories - Free & Customizable</title>
+    <title>Custom Strava Overlays & Stickers for Instagram Stories</title>
     <link rel="preload" as="style" href="/static/css/tailwind.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
         media="print" onload="this.media='all'">
@@ -29,14 +29,14 @@
     <link rel="alternate" hreflang="en" href="https://fitnessoverlays.com/">
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
     <meta name="description"
-        content="Create custom Strava stickers and overlays with transparent backgrounds. Generate stats stickers for Instagram Stories, Reels, and TikTok. Free and customizable.">
+        content="Create custom Strava stickers and transparent overlays for Instagram Stories. Design and share free fitness stats stickers—no app needed. Start now!" />
     <meta name="author" content="Fitness Overlays">
     <meta name="wot-verification" content="be349437437d231681e7">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://fitnessoverlays.com{{ request.path }}">
-    <meta property="og:title" content="Custom Strava Stickers & Overlays for Instagram Stories | Fitness Overlays">
+    <meta property="og:title" content="Custom Strava Stickers & Overlays for Instagram">
     <meta property="og:description"
-        content="Generate custom Strava stickers and transparent overlays for Instagram Stories. Create stats stickers for your runs, rides, and workouts. Perfect for runners, cyclists, and creators.">
+        content="Generate custom Strava stickers and transparent overlays for Instagram Stories. Create stats stickers for your runs and rides. Perfect for athletes!">
     <meta property="og:image" content="https://fitnessoverlays.com/static/images/og-image.png">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
@@ -46,9 +46,9 @@
     <meta property="og:locale" content="en_US">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://fitnessoverlays.com{{ request.path }}">
-    <meta name="twitter:title" content="Custom Strava Stickers & Overlays for Instagram | Fitness Overlays">
+    <meta name="twitter:title" content="Custom Strava Stickers & Overlays for Instagram">
     <meta name="twitter:description"
-        content="Generate custom Strava stickers and transparent overlays for Instagram Stories. Create stats stickers for your runs, rides, and workouts. Perfect for runners, cyclists, and creators.">
+        content="Generate custom Strava stickers and transparent overlays for Instagram Stories. Create stats stickers for your runs and rides. Perfect for athletes!">
     <meta name="twitter:image" content="https://fitnessoverlays.com/static/images/og-image.png">
     <meta name="twitter:site" content="@spyroslontos">
     <meta name="twitter:creator" content="@spyroslontos">
@@ -64,7 +64,7 @@
         "@type": "SoftwareApplication",
         "name": "Fitness Overlays",
         "url": "https://fitnessoverlays.com/",
-        "description": "Generate custom Strava stickers and transparent overlays for Instagram Stories. Create stats stickers for your runs, rides, and workouts. Perfect for runners, cyclists, and creators.",
+        "description": "Create custom Strava stickers and transparent overlays for Instagram Stories. Design and share free fitness stats stickers—no app needed. Start now!",
         "operatingSystem": "Web, iOS, Android",
         "applicationCategory": "Sports",
         "offers": {
@@ -108,7 +108,7 @@
 
     <header class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-50 border-b border-fitness-light-gray/50">
         <nav class="container mx-auto p-2 flex justify-between items-center max-w-[900px] gap-1.5">
-            <div class="flex items-center min-w-0 flex-shrink">
+            <div class="flex items-center min-w-0 shrink">
                 <a href="/"
                     class="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity group min-w-0">
                     <img src="/static/images/FitnessOverlaysLogo.ico" alt="Fitness Overlays Logo"
@@ -120,7 +120,7 @@
                 </a>
             </div>
 
-            <div class="flex items-center flex-shrink-0">
+            <div class="flex items-center shrink-0">
                 {% if authenticated %}
                 <div class="relative inline-flex items-center">
                     <button id="profile-picture-trigger" class="cursor-pointer relative group">
