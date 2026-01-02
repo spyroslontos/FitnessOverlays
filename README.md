@@ -1,73 +1,42 @@
 # FitnessOverlays 🏃📱
 
-## 🌍 Live Website
+[![Live](https://img.shields.io/badge/Live-fitnessoverlays.com-007bff)](https://fitnessoverlays.com/)
 
-[fitnessoverlays.com](https://fitnessoverlays.com/)
-
-## Turn Your Strava Activities into Custom Overlays
-
-FitnessOverlays lets you create clean, Instagram-ready overlays from your Strava activities. Designed to work smoothly on both mobile and desktop.
+FitnessOverlays generates clean, customizable activity overlays from Strava data, designed for social sharing.
 
 ---
 
-## ⚙️ How It Works
+## Why
 
-1. **Connect** your Strava account securely via OAuth.
-2. **Choose an activity** from your personal Strava history.
-3. **Customize** your overlay:
-   - Pick stats to include
-   - Choose text size, color, alignment
-   - Select number of columns
-4. **Export** as a transparent PNG or plain text
+Strava’s built-in activity overlays are limited, mostly locked behind a premium paywall, and not optimized for export-quality sharing.
+
+FitnessOverlays solves this by letting athletes create better overlays from their activity data without relying on Strava’s premium features.
 
 ---
 
-## 📊 Metrics Supported
+## What It Does
 
-Available metrics depend on the activity and include:
-
-- **Distance** (`11.01 km`)
-- **Moving Time** (`1h 5m 52s`)
-- **Pace** (`5:58 /km`) or **Speed** (`10.1 km/h`)
-- **Avg/Max Heart Rate**
-- **Calories**
-- **Elevation Gain**
-- **Map** (activity route as a graphic overlay)
+- Secure OAuth connection to Strava
+- Client-side Canvas rendering for deterministic overlays
+- Route map rendering from activity data
+- Export transparent PNGs for social platforms
 
 ---
 
-## 🧩 Customization Options
+## Stack
 
-- Enable or disable each metric (including the map/route)
-- Adjust text color, alignment, size and font
-- Select 1 to 4 columns
-- Reset to default layout in one click
-
----
-
-## 📤 Export & Share
-
-- **Copy as text**
-- **Copy image** (transparent PNG, including map if selected)
-- **Download** or long-press to save on mobile
+- **Backend**: Python (Flask)
+- **Frontend**: Vanilla JS, Tailwind CSS
+- **Data**: PostgreSQL (Supabase), Redis
+- **Infra**: Docker, Render, Cloudflare
 
 ---
 
-## ❓ FAQ
+## Notes
 
-For common questions like disconnecting from Strava or privacy details, visit the [FAQ section on our homepage](https://fitnessoverlays.com/#faq).
-
----
-
-## 🧪 Developer Info
-
-For local setup, Docker, and Tailwind usage, see [`NOTES.md`](./NOTES.md).
+Local setup and development notes live in  
+➡ **[NOTES.md](./NOTES.md)**
 
 ---
-
-## 📄 License
-
-&copy; 2025 FitnessOverlays  
-Licensed under [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html)
 
 ![Powered by Strava](static/images/api_logo_pwrdBy_strava_horiz_orange.svg)
