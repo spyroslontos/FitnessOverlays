@@ -1,7 +1,7 @@
 {
   "name": "fitnessoverlays",
   "version": "1.0.0",
-  "description": "## Turn Your Strava Activities into Awesome Overlays",
+  "description": "Turn Your Strava Activities into Custom Transparent Overlays",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -19,8 +19,8 @@
   },
   "homepage": "https://github.com/spyroslontos/FitnessOverlays#readme",
   "devDependencies": {
-    "@tailwindcss/cli": "^4.1.17",
-    "tailwindcss": "^4.1.17"
+    "@tailwindcss/cli": "^4.1.18",
+    "tailwindcss": "^4.1.18"
   },
   "dependencies": {
     "flowbite": "^4.0.1"
