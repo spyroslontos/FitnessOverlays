@@ -20,28 +20,33 @@ pip freeze > requirements-frozen.txt
 ## Docker (Production Parity)
 
 ```bash
-docker build -t fitnessoverlays-app .
+docker build -t fitnessoverlays .
 
 docker run -p 8000:8000 \
-  --name fitnessoverlays-web \
   --env-file .env \
-  -d fitnessoverlays-app
+  --name fitnessoverlays \
+  -d fitnessoverlays
 
-# Hot reload against local files
-docker run -p 8000:8000 \
-  --name fitnessoverlays-web-dev \
-  -v "/Users/spyros/projects/FitnessOverlays:/app" \
-  --env-file .env \
-  -d fitnessoverlays-app
+# Docker hot reload
+docker run -p 8000:8000
+  --name fitnessoverlays-dev
+  -v "/Users/spyros/projects/FitnessOverlays:/app"
+  -w /app
+  --env-file .env
+  -d python:3.11-slim
+  bash -c "pip install -r requirements.txt &&
+  npx tailwindcss -i static/css/input.css -o static/css/tailwind.css --watch &
+  FLASK_APP=server.py FLASK_ENV=development flask run --host=0.0.0.0 --port=8000"
 
-docker logs -f fitnessoverlays-web
-docker stop fitnessoverlays-web && docker rm fitnessoverlays-web
+docker logs -f fitnessoverlays-dev
+docker stop fitnessoverlays-dev && docker rm fitnessoverlays-dev
 ```
 
 ## Tailwind
 
 ```bash
 npx @tailwindcss/cli -i ./static/css/input.css -o ./static/css/tailwind.css --watch
+
 npx @tailwindcss/cli -i ./static/css/input.css -o ./static/css/tailwind.css --minify
 ```
 
