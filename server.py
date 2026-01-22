@@ -10,6 +10,7 @@ from slowapi.errors import RateLimitExceeded
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import BigInteger, String, Boolean, Integer, Float, DateTime, ForeignKey, JSON, select, delete, func
+from sqlalchemy.pool import NullPool
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone, timedelta
@@ -82,11 +83,11 @@ async_db_url = SQLALCHEMY_DATABASE_URI.replace("postgres://", "postgresql+asyncp
 
 engine = create_async_engine(
     async_db_url,
-    pool_size=2,           # Keep 2 connections open
-    pool_recycle=3600,     # Recycle connections every hour
-    pool_pre_ping=True,    # Test connection before use
-    max_overflow=3,        # Allow 3 extra connections during spikes
-    connect_args={"prepared_statement_cache_size": 0}, # Fix for pgbouncer DuplicatePreparedStatementError
+    poolclass=NullPool,
+    connect_args={
+        "statement_cache_size": 0,
+        "prepared_statement_cache_size": 0,
+    },
 )
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
