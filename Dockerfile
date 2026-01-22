@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.14-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 WORKDIR /app
@@ -20,4 +20,4 @@ RUN npx @tailwindcss/cli -i ./static/css/input.css -o ./static/css/tailwind.css 
     rm -rf node_modules package-lock.json
 
 EXPOSE 8000
-CMD ["gunicorn", "-w", "1", "--bind", "0.0.0.0:8000", "--access-logfile", "-", "--error-logfile", "-", "server:app"]
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

@@ -1,18 +1,24 @@
-# Core dependencies
-flask
-flask-limiter
-Flask-SQLAlchemy>=3.0
-Werkzeug>=2.0 # Required for ProxyFix to get real client IP behind Cloudflare/Render
-psycopg2-binary
+# Core framework
+fastapi
+uvicorn[standard]
+jinja2
 
-# API and OAuth dependencies
+# Database
+sqlalchemy[asyncio]>=2.0
+asyncpg
+psycopg2-binary  # Keep for potential sync fallback/migrations
+
+# HTTP Client (async)
 httpx
+
+# Session management (Redis-backed)
+starlette-session[redis]
+
+# Rate limiting
+slowapi
 
 # Environment and config
 python-dotenv
 
-# WSGI Server for Production
-gunicorn
-
-# Redis client (for Flask-Limiter backend)
-redis
+# Form handling
+python-multipart

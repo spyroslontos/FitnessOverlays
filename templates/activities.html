@@ -344,7 +344,15 @@
             url.searchParams.append('page', page);
             url.searchParams.append('per_page', apiBatchSize);
 
-            fetch(url, { method: 'GET', credentials: 'include' })
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            fetch(url, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'X-CSRF-Token': csrfToken
+                }
+            })
                 .then(res => res.json())
                 .then(data => {
                     if (data.activities) {
