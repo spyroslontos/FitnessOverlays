@@ -49,24 +49,29 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "prod").lower()
 DEBUG_MODE = ENVIRONMENT == "dev"
+USE_REDIS = RATELIMIT_STORAGE_URI.startswith("redis://")
+
 
 # Logging setup
 os.makedirs('logs', exist_ok=True)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+log_formatter = logging.Formatter('%(asctime)s | %(levelname)-7s | %(message)s')
 
 file_handler = TimedRotatingFileHandler('logs/app.log', when='midnight', backupCount=30, encoding='utf-8')
-file_handler.setFormatter(formatter)
-file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(log_formatter)
 
 console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(log_formatter)
 
 logger = logging.getLogger()
 logger.handlers.clear()
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 logger.setLevel(logging.INFO)
+
+# Silence noisy dependency loggers
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
 SESSION_COOKIE_NAME = "session"
 SESSION_MAX_AGE = 60 * 60 * 24 * 365 
@@ -246,14 +251,15 @@ class ActivityLists(Base):
 
 # --- Load demo data ---
 DEMO_ACTIVITY_DATA = {}
-try:
-    with open('static/demo/activity_demo.json', 'r', encoding='utf-8') as f:
-        DEMO_ACTIVITY_DATA = json.load(f)
-    logger.info("Loaded demo activity data")
-except FileNotFoundError:
-    logger.warning("Demo data file not found, skipping demo data")
-except json.JSONDecodeError as e:
-    logger.error(f"Invalid JSON in demo data file: {e}")
+def load_demo_data():
+    global DEMO_ACTIVITY_DATA
+    try:
+        with open('static/demo/activity_demo.json', 'r', encoding='utf-8') as f:
+            DEMO_ACTIVITY_DATA = json.load(f)
+        return True
+    except Exception:
+        return False
+
 
 # --- User count cache ---
 CACHED_USER_COUNT = None
@@ -334,7 +340,19 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     http_client = httpx.AsyncClient()
-    logger.info("FastAPI application started")
+    
+    if load_demo_data():
+        logger.info("Loaded demo activity data")
+    else:
+        logger.warning("Demo data file not found or invalid")
+
+    # Silence noisy loggers again at startup to be sure
+    for noisy in ["uvicorn.access", "httpx", "httpcore"]:
+        logging.getLogger(noisy).setLevel(logging.WARNING)
+
+    session_type = "Redis" if USE_REDIS else "Cookie"
+    logger.info(f"FastAPI started - Session Storage: {session_type} - Debug: {DEBUG_MODE}")
+
     yield
     # Shutdown
     await http_client.aclose()
@@ -346,34 +364,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 app.state.limiter = limiter
 
-# Add session middleware - use cookies for dev, Redis for prod
-if RATELIMIT_STORAGE_URI.startswith("redis://"):
-    # Production: Use Redis backend
-    import redis
-    redis_client = redis.from_url(RATELIMIT_STORAGE_URI)
-    app.add_middleware(
-        SessionMiddleware,
-        secret_key=SECRET_KEY,
-        cookie_name=SESSION_COOKIE_NAME,
-        max_age=SESSION_MAX_AGE,
-        same_site="lax",
-        https_only=True,
-        backend_type=BackendType.redis,
-        backend_client=redis_client,
-    )
-    logger.info("Using Redis-backed sessions")
-else:
-    # Development: Use cookie-based sessions (no Redis required)
-    app.add_middleware(
-        SessionMiddleware,
-        secret_key=SECRET_KEY,
-        cookie_name=SESSION_COOKIE_NAME,
-        max_age=SESSION_MAX_AGE,
-        same_site="lax",
-        https_only=False,
-        backend_type=BackendType.cookie,
-    )
-    logger.info("Using cookie-based sessions (dev mode)")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -459,7 +449,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         
         if request.method in ['POST', 'PUT', 'DELETE', 'PATCH']:
             if not validate_csrf_token(request):
-                logger.warning(f'CSRF validation failed - IP: {get_real_ip(request)}')
+                logger.warning(f'[{get_real_ip(request)}] CSRF validation failed')
                 return JSONResponse({"error": "Invalid CSRF token"}, status_code=403)
         
         return await call_next(request)
@@ -478,7 +468,7 @@ class DomainEnforcementMiddleware(BaseHTTPMiddleware):
         allowed_suffixes = (".ngrok.io", ".ngrok-free.app")
         
         if host not in allowed_exact and not any(host.endswith(suffix) for suffix in allowed_suffixes):
-            logger.warning(f'Redirecting athlete - IP: {get_real_ip(request)}')
+            logger.warning(f'[{get_real_ip(request)}] Redirecting athlete to canonical domain')
             return RedirectResponse(f"https://fitnessoverlays.com{request.url.path}", status_code=301)
         
         return await call_next(request)
@@ -490,10 +480,37 @@ app.add_middleware(CSRFMiddleware)
 app.add_middleware(DomainEnforcementMiddleware)
 
 
+if USE_REDIS:
+    # Production: Redis backend
+    import redis
+    redis_client = redis.from_url(RATELIMIT_STORAGE_URI)
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=SECRET_KEY,
+        cookie_name=SESSION_COOKIE_NAME,
+        max_age=SESSION_MAX_AGE,
+        same_site="lax",
+        https_only=True,
+        backend_type=BackendType.redis,
+        backend_client=redis_client,
+    )
+else:
+    # Development: Cookie-based sessions
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=SECRET_KEY,
+        cookie_name=SESSION_COOKIE_NAME,
+        max_age=SESSION_MAX_AGE,
+        same_site="lax",
+        https_only=False,
+        backend_type=BackendType.cookie,
+    )
+
+
 # --- Rate limit handler ---
 @app.exception_handler(RateLimitExceeded)
 async def ratelimit_handler(request: Request, exc: RateLimitExceeded):
-    logger.warning(f"Rate limit exceeded - IP: {get_real_ip(request)} - Path: {request.url.path}")
+    logger.warning(f"[{get_real_ip(request)}] Rate limit exceeded - Path: {request.url.path} - Info: {str(exc.detail)}")
     if request.url.path.startswith('/api/') or request.url.path == '/webhook':
         return JSONResponse(
             {"error": "Rate limit exceeded", "message": str(exc.detail)},
@@ -507,23 +524,23 @@ async def refresh_access_token(request: Request, db: AsyncSession) -> tuple[Opti
     """Refresh access token using refresh token from session"""
     refresh_token = request.session.get('refresh_token')
     if not refresh_token:
-        logger.warning('Missing refresh token')
+        logger.warning(f"[{get_real_ip(request)}] Refresh token missing in session")
         return None, None
     
     athlete_id = request.session.get('athlete_id')
     if not athlete_id:
-        logger.error('Missing athlete_id in session')
+        logger.error(f"[{get_real_ip(request)}] athlete_id missing in session during refresh")
         return None, None
     
     result = await db.execute(select(Athletes).where(Athletes.athlete_id == athlete_id))
     athlete = result.scalar_one_or_none()
     
     if not athlete:
-        logger.error(f'Athlete {athlete_id} not found')
+        logger.error(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Athlete record not found during refresh")
         return None, None
     
     if athlete.refresh_token != refresh_token:
-        logger.error('Refresh token mismatch')
+        logger.error(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Refresh token mismatch")
         return None, None
     
     try:
@@ -545,26 +562,26 @@ async def refresh_access_token(request: Request, db: AsyncSession) -> tuple[Opti
         try:
             athlete.update_from_token(token_data, athlete_details)
             await db.commit()
-            logger.info(f'Token refreshed for athlete {athlete_id}')
+            logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Token refreshed successfully")
         except Exception as e:
             await db.rollback()
-            logger.error(f'DB update failed: {str(e)}')
+            logger.error(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] DB update failed during refresh: {str(e)}")
             return None, None
 
         return token_data, athlete_details
     except httpx.TimeoutException:
-        logger.error('Request timed out')
+        logger.error(f"[{get_real_ip(request)}] Refresh request timed out")
     except httpx.RequestError as e:
-        logger.error(f'Network error: {str(e)}')
+        logger.error(f"[{get_real_ip(request)}] Refresh network error: {str(e)}")
     except Exception as e:
-        logger.error(f'Unexpected error: {str(e)}')
+        logger.error(f"[{get_real_ip(request)}] Unexpected error during refresh: {str(e)}")
     return None, None
 
 
 async def ensure_valid_token(request: Request, db: AsyncSession) -> bool:
     """Ensure token is valid, refresh if needed. Updates session directly. Returns True if valid."""
     if 'access_token' not in request.session or 'expires_at' not in request.session:
-        logger.warning("Missing token data in session")
+        logger.warning(f"[{get_real_ip(request)}] Token missing in session, clearing")
         was_logged_out = request.session.get('logged_out')
         request.session.clear()
         if was_logged_out:
@@ -572,6 +589,7 @@ async def ensure_valid_token(request: Request, db: AsyncSession) -> bool:
         return False
     
     current_time = time.time()
+    athlete_id = request.session.get('athlete_id', 'Unknown')
     token_expires_at = request.session['expires_at']
     time_until_expiry = token_expires_at - current_time
     
@@ -580,10 +598,10 @@ async def ensure_valid_token(request: Request, db: AsyncSession) -> bool:
     
     if time_until_expiry <= 300 or is_profile_stale:
         if time_until_expiry <= 300:
-            logger.info(f"Token expiring in {int(time_until_expiry)}s, attempting refresh")
+            logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Token expiring in {int(time_until_expiry)}s, attempting refresh")
             new_token, athlete_details = await refresh_access_token(request, db)
             if not new_token:
-                logger.warning("Token refresh failed")
+                logger.warning(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Token refresh failed")
                 request.session.clear()
                 return False
             
@@ -598,11 +616,11 @@ async def ensure_valid_token(request: Request, db: AsyncSession) -> bool:
                 request.session['measurement_preference'] = athlete_details.get('measurement_preference')
                 request.session['last_profile_check'] = current_time
             
-            logger.info(f"Token refreshed successfully - New expiry: {datetime.fromtimestamp(new_token['expires_at']).isoformat()}")
+            logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Token updated successfully")
             return True
         
         elif is_profile_stale:
-            logger.info("Profile data stale, fetching fresh details")
+            logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Profile stale, fetching fresh details")
             athlete_details = await fetch_athlete_details(request.session['access_token'])
             if athlete_details:
                 request.session['athlete_first_name'] = athlete_details.get('firstname')
@@ -612,19 +630,17 @@ async def ensure_valid_token(request: Request, db: AsyncSession) -> bool:
                 request.session['last_profile_check'] = current_time
                 
                 try:
-                    athlete_id = request.session.get('athlete_id')
-                    if athlete_id:
+                    if athlete_id != 'Unknown':
                         result = await db.execute(select(Athletes).where(Athletes.athlete_id == athlete_id))
                         athlete = result.scalar_one_or_none()
                         if athlete:
                             athlete.update_from_athlete_details(athlete_details)
                             await db.commit()
                 except Exception as e:
-                    logger.error(f"Failed to update DB with fresh profile: {e}")
+                    logger.error(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] DB update failed for profile: {e}")
             
             return True
 
-    logger.info(f"Token valid – expires in {int(time_until_expiry)}s (at {datetime.fromtimestamp(token_expires_at).isoformat()})")
     return True
 
 
@@ -722,8 +738,6 @@ async def callback(request: Request, db: AsyncSession = Depends(get_db)):
             logger.error('No athlete ID in token response')
             return RedirectResponse('/', status_code=303)
         
-        logger.info(f"Athlete Logged In - ID: {athlete_id} - Name: {athlete_data.get('firstname')} {athlete_data.get('lastname')} - IP: {get_real_ip(request)}")
-        
         try:
             result = await db.execute(select(Athletes).where(Athletes.athlete_id == athlete_id))
             athlete = result.scalar_one_or_none()
@@ -731,9 +745,9 @@ async def callback(request: Request, db: AsyncSession = Depends(get_db)):
             if not athlete:
                 athlete = Athletes(athlete_id=athlete_id)
                 db.add(athlete)
-                logger.info(f'Creating new athlete record for ID: {athlete_id}')
+                log_prefix = "New auth"
             else:
-                logger.info(f'Updating existing athlete record for ID: {athlete_id}')
+                log_prefix = "Existing auth"
             
             athlete.update_from_token(token, athlete_data)
             athlete_details = await fetch_athlete_details(token['access_token'])
@@ -741,8 +755,8 @@ async def callback(request: Request, db: AsyncSession = Depends(get_db)):
                 athlete.update_from_athlete_details(athlete_details)
             
             await db.commit()
-            logger.info(f'Successfully updated athlete data in database for ID: {athlete_id}')
-            
+            logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Login: {log_prefix} - Name: {athlete_data.get('firstname')} {athlete_data.get('lastname')}")
+
             # Update session directly
             request.session['athlete_id'] = athlete_id
             request.session['athlete_username'] = athlete_data.get('username')
@@ -764,14 +778,13 @@ async def callback(request: Request, db: AsyncSession = Depends(get_db)):
         return RedirectResponse('/', status_code=303)
         
     except Exception as e:
-        logger.error(f'OAuth callback error details: {str(e)} - IP: {get_real_ip(request)}')
+        logger.error(f'[{get_real_ip(request)}] OAuth callback error: {str(e)}')
         return RedirectResponse('/', status_code=303)
 
 
 @app.post("/logout")
 async def logout(request: Request):
-    logger.info(f"Athlete logged out - ID: {request.session.get('athlete_id')} - Name: {request.session.get('athlete_first_name')} {request.session.get('athlete_last_name')} - IP: {get_real_ip(request)}")
-    
+    logger.info(f"[{get_real_ip(request)}] [Athlete: {request.session.get('athlete_id')}] Athlete logged out")
     request.session.clear()
     request.session['logged_out'] = True
     
@@ -780,8 +793,6 @@ async def logout(request: Request):
 
 @app.get("/")
 async def index(request: Request, db: AsyncSession = Depends(get_db)):
-    logger.info(f"Landing page accessed - IP: {get_real_ip(request)} | X-Forwarded-For: {request.headers.get('X-Forwarded-For')}")
-    
     try:
         csrf_token = generate_csrf_token(request)
         user_count = await get_rounded_user_count(db)
@@ -789,7 +800,7 @@ async def index(request: Request, db: AsyncSession = Depends(get_db)):
         athlete = await get_authenticated_athlete(request, db)
         
         if not athlete:
-            logger.info("Index: No access token in session or invalid token")
+            logger.info(f"[{get_real_ip(request)}] Index: Guest")
             return templates.TemplateResponse(
                 "index.html",
                 {
@@ -800,7 +811,7 @@ async def index(request: Request, db: AsyncSession = Depends(get_db)):
                 }
             )
         
-        logger.info(f"Index: Authenticated user - Athlete ID: {request.session.get('athlete_id')} - Athlete Name: {request.session.get('athlete_first_name')} {request.session.get('athlete_last_name')}")
+        logger.info(f"[{get_real_ip(request)}] [Athlete: {request.session.get('athlete_id')}] Index: Auth")
         
         return templates.TemplateResponse(
             "index.html",
@@ -817,7 +828,7 @@ async def index(request: Request, db: AsyncSession = Depends(get_db)):
         )
         
     except Exception as e:
-        logger.error(f"Index: Unexpected error: {str(e)}")
+        logger.error(f"[{get_real_ip(request)}] Index error: {str(e)}")
         request.session.clear()
         csrf_token = generate_csrf_token(request)
         return templates.TemplateResponse(
@@ -841,7 +852,7 @@ async def customize(request: Request, db: AsyncSession = Depends(get_db)):
             return templates.TemplateResponse("auth_required.html", {"request": request})
         return RedirectResponse('/login', status_code=303)
     
-    logger.info(f"Customize overlays endpoint called - Athlete ID: {request.session['athlete_id']} - Athlete Name: {request.session['athlete_first_name']} {request.session['athlete_last_name']}")
+    logger.info(f"[{get_real_ip(request)}] [Athlete: {request.session['athlete_id']}] Customize page accessed")
     
     return templates.TemplateResponse(
         "customize.html",
@@ -922,7 +933,6 @@ async def sync_activities(
         return JSONResponse({"error": "Invalid CSRF token"}, status_code=403)
     
     athlete_id = request.session['athlete_id']
-    logger.info(f"Syncing Activities called - Athlete ID: {athlete_id} - Athlete Name: {request.session['athlete_first_name']} {request.session['athlete_last_name']}")
     
     per_page = min(per_page, ActivityLists.ITEMS_PER_PAGE)
     
@@ -953,7 +963,7 @@ async def sync_activities(
             response = Response(content='', status_code=304)
             response.headers['ETag'] = etag
             response.headers['Cache-Control'] = 'private, max-age=180'
-            logger.info(f"Returning 304 Not Modified for activities sync (Cooldown Active) - Athlete ID: {athlete_id}")
+            logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Sync check: Not modified (304)")
             return response
         
         response_data = create_sync_response(
@@ -1006,6 +1016,8 @@ async def sync_activities(
                 db.add(sync_log)
             
             await db.commit()
+            logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Sync: Success (page {page})")
+
             
             response_data = create_sync_response(activities_data, page, per_page, current_time, 0, using_cached=False)
             response = JSONResponse(response_data)
@@ -1018,14 +1030,14 @@ async def sync_activities(
             
         except Exception as db_error:
             await db.rollback()
-            logger.error(f"Database error during sync: {db_error}")
+            logger.error(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Sync database error: {db_error}")
             response_data = create_sync_response(activities_data, page, per_page, None, 0, using_cached=False)
             response = JSONResponse(response_data)
             response.headers['Cache-Control'] = 'private, max-age=180'
             return response
             
     except Exception as e:
-        logger.error(f"Sync error: {e}")
+        logger.error(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Sync unexpected error: {e}")
         response_data = create_sync_response(
             sync_log.data if sync_log else [], page, per_page,
             sync_log.last_synced if sync_log else None, seconds_remaining,
@@ -1053,7 +1065,6 @@ async def get_activity(
         return JSONResponse({"error": "Not authenticated"}, status_code=401)
     
     athlete_id = request.session['athlete_id']
-    logger.info(f"Fetching Activity {activity_id} - Athlete ID: {athlete_id}")
     
     result = await db.execute(
         select(Activities).where(
@@ -1076,10 +1087,10 @@ async def get_activity(
                 response = Response(content='', status_code=304)
                 response.headers['ETag'] = etag
                 response.headers['Cache-Control'] = 'private, max-age=300'
-                logger.info(f"Returning 304 Not Modified for activity {activity_id} (Cooldown Active) - Athlete ID: {athlete_id}")
+                logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Activity {activity_id} check: Not modified (304)")
                 return response
             
-            logger.info(f"Returning cached activity {activity_id} - {seconds_remaining}s cooldown remaining")
+            logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Activity {activity_id}: Cache hit ({seconds_remaining}s cooldown)")
             response_data = {
                 "activity": activity.data,
                 "cooldown": {
@@ -1096,7 +1107,6 @@ async def get_activity(
             return response
     
     try:
-        logger.info(f"Fetching fresh data for activity {activity_id} from Strava")
         api_response = await http_client.get(
             f"https://www.strava.com/api/v3/activities/{activity_id}",
             headers={"Authorization": f"Bearer {request.session['access_token']}"},
@@ -1104,7 +1114,7 @@ async def get_activity(
         )
         
         if not api_response.is_success:
-            logger.error(f"Strava API error for activity {activity_id}: {api_response.status_code}")
+            logger.error(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Strava API error for activity {activity_id}: {api_response.status_code}")
             if activity:
                 seconds_remaining = await activity.get_cooldown_remaining(db)
                 response_data = {
@@ -1141,7 +1151,7 @@ async def get_activity(
                 db.add(activity)
             
             await db.commit()
-            logger.info(f"Successfully cached activity {activity_id}")
+            logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Activity {activity_id}: Fresh fetch & cached")
             
             response_data = {
                 "activity": activity_data,
@@ -1162,11 +1172,11 @@ async def get_activity(
             
         except Exception as db_error:
             await db.rollback()
-            logger.error(f'Database error caching activity {activity_id}: {str(db_error)}')
+            logger.error(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Database error caching activity {activity_id}: {str(db_error)}")
             raise
             
     except Exception as e:
-        logger.error(f'Error fetching activity {activity_id}: {str(e)}')
+        logger.error(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Error fetching activity {activity_id}: {str(e)}")
         if activity:
             seconds_remaining = await activity.get_cooldown_remaining(db)
             response_data = {
@@ -1191,7 +1201,7 @@ async def get_activity(
 
 async def delete_user_data(db: AsyncSession, athlete_id: int):
     try:
-        logger.info(f"Deleting data for athlete {athlete_id}")
+        logger.info(f"Deleting all data for athlete {athlete_id}")
         await db.execute(delete(Activities).where(Activities.athlete_id == athlete_id))
         await db.execute(delete(ActivityLists).where(ActivityLists.athlete_id == athlete_id))
         await db.execute(delete(Athletes).where(Athletes.athlete_id == athlete_id))
@@ -1199,7 +1209,7 @@ async def delete_user_data(db: AsyncSession, athlete_id: int):
         logger.info(f"Successfully deleted all data for athlete {athlete_id}")
     except Exception as e:
         await db.rollback()
-        logger.error(f"Error deleting user data for athlete {athlete_id}: {str(e)}")
+        logger.error(f"Error deleting data for athlete {athlete_id}: {str(e)}")
         raise
 
 
@@ -1212,14 +1222,13 @@ async def webhook_verify(
     hub_challenge: str = Query(None, alias="hub.challenge")
 ):
     if not VERIFY_TOKEN:
-        logger.error("STRAVA_VERIFY_TOKEN not configured")
+        logger.error(f"[{get_real_ip(request)}] Webhook configuration error: STRAVA_VERIFY_TOKEN missing")
         return JSONResponse({"error": "Webhook not configured"}, status_code=500)
     
     if hub_verify_token == VERIFY_TOKEN:
-        logger.info(f"Webhook verification successful with challenge: {hub_challenge}")
         return JSONResponse({"hub.challenge": hub_challenge})
     
-    logger.warning(f"Invalid webhook verification token from IP: {get_real_ip(request)}")
+    logger.warning(f"[{get_real_ip(request)}] Webhook verification failed: Invalid token")
     return JSONResponse({"error": "Invalid verification token"}, status_code=403)
 
 
@@ -1230,13 +1239,13 @@ async def webhook_event(request: Request, db: AsyncSession = Depends(get_db)):
         signature = request.headers.get('X-Strava-Signature')
         if not signature:
             if ENVIRONMENT == "dev":
-                logger.warning("Skipping signature verification in development mode")
+                logger.warning(f"[{get_real_ip(request)}] Webhook: Skipping signature verification (dev mode)")
             else:
-                logger.warning(f"Missing Strava signature in webhook request from IP: {get_real_ip(request)}")
+                logger.warning(f"[{get_real_ip(request)}] Webhook: Missing Strava signature")
                 return JSONResponse({"error": "Unauthorized"}, status_code=403)
         
         event = await request.json()
-        logger.info(f"Received webhook event: {event}")
+        logger.info(f"[{get_real_ip(request)}] Webhook event received: {event.get('object_type')} {event.get('aspect_type')}")
         
         if (event.get("object_type") == "athlete" and
             event.get("aspect_type") == "update" and
@@ -1244,13 +1253,13 @@ async def webhook_event(request: Request, db: AsyncSession = Depends(get_db)):
             athlete_id = event.get("owner_id")
             if athlete_id:
                 await delete_user_data(db, athlete_id)
-                logger.info(f"Successfully processed deauthorization for athlete {athlete_id}")
+                logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Webhook: Deauthorization processed")
             else:
-                logger.warning("Received deauthorization event without athlete_id")
+                logger.warning(f"[{get_real_ip(request)}] Webhook: Deauthorization missing athlete_id")
         
         return JSONResponse({"status": "ok"})
     except Exception as e:
-        logger.error(f"Error processing webhook event: {str(e)}")
+        logger.error(f"[{get_real_ip(request)}] Webhook processing error: {str(e)}")
         return JSONResponse({"error": "Internal server error"}, status_code=500)
 
 
@@ -1277,7 +1286,7 @@ async def llms_txt():
 @app.get("/demo")
 @limiter.limit("30/hour")
 async def demo(request: Request, db: AsyncSession = Depends(get_db)):
-    logger.info(f"Demo page accessed - IP: {get_real_ip(request)}")
+    logger.info(f"[{get_real_ip(request)}] Demo page accessed")
     
     activity = DEMO_ACTIVITY_DATA
     is_authenticated = False
@@ -1288,7 +1297,7 @@ async def demo(request: Request, db: AsyncSession = Depends(get_db)):
         athlete = result.scalar_one_or_none()
         if athlete:
             is_authenticated = True
-            logger.info(f"Authenticated user accessing demo - Athlete ID: {athlete_id} - Name: {request.session.get('athlete_first_name')} {request.session.get('athlete_last_name')} - IP: {get_real_ip(request)}")
+            logger.info(f"[{get_real_ip(request)}] [Athlete: {athlete_id}] Demo accessed by authenticated user")
     
     csrf_token = request.session.get('csrf_token') if is_authenticated else generate_csrf_token(request)
     
@@ -1342,5 +1351,5 @@ async def sitemap_xml():
 
 if __name__ == '__main__':
     import uvicorn
-    logging.info("Starting FastAPI application...")
+    logger.info("Starting uvicorn server...")
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=DEBUG_MODE)
