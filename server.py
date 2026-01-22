@@ -86,6 +86,7 @@ engine = create_async_engine(
     pool_recycle=3600,     # Recycle connections every hour
     pool_pre_ping=True,    # Test connection before use
     max_overflow=3,        # Allow 3 extra connections during spikes
+    connect_args={"prepared_statement_cache_size": 0}, # Fix for pgbouncer DuplicatePreparedStatementError
 )
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
