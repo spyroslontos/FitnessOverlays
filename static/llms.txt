@@ -1,95 +1,65 @@
-title: FitnessOverlays
-description: Web app that creates Instagram-ready overlays from Strava workout data with transparent backgrounds
-tags: strava, fitness, instagram, overlays, python, flask, oauth
-
 # FitnessOverlays
 
-FitnessOverlays is a free web application that generates customizable, transparent overlays from your Strava activities. Perfect for sharing runs, rides, and workouts on Instagram Stories, Reels, and TikTok.
+> Web app that creates Instagram-ready overlays from Strava workout data with transparent backgrounds.
 
-## Quick Links
+## Summary
 
-- **Live App**: https://fitnessoverlays.com
-- **Try Demo**: https://fitnessoverlays.com/demo (no login required)
-- **FAQ**: https://fitnessoverlays.com/#faq
-- **GitHub**: https://github.com/spyroslontos/FitnessOverlays
+FitnessOverlays generates clean, customizable activity overlays from Strava data, designed for social sharing. It solves the problem of Strava's limited sharing options by letting athletes create premium-quality, transparent PNG overlays without a subscription.
 
-## How It Works
+## Key Features
 
-1. **Connect**: OAuth 2.0 authentication with Strava (read-only access)
-2. **Select**: Browse your recent activities from Strava
-3. **Customize**: Choose metrics, colors, text size, alignment, and layout
-4. **Export**: Download as transparent PNG or copy stats as text
-
-## Supported Metrics
-
-- Distance, Time, Pace/Speed
-- Heart Rate (avg, max)
-- Calories, Elevation Gain
-- Cadence, Power (for cycling)
-- Activity Name, Date, Type
+- **Secure Integration**: OAuth 2.0 connection to Strava (read-only access).
+- **Canvas Rendering**: Client-side, deterministic rendering for high-quality overlays.
+- **Route Mapping**: Visualizes activity routes directly from Strava data.
+- **Social Optimized**: Exports transparent PNGs perfect for Instagram Stories, Reels, and TikTok.
+- **Privacy Focused**: No data sold; minimal data retention policy.
 
 ## Tech Stack
 
-### Backend
-- Python 3.x with Flask
-- SQLAlchemy (PostgreSQL)
-- Redis for rate limiting
-- Strava API v3 integration
+### Core
+- **Backend**: Python 3.14+ with FastAPI and Uvicorn.
+- **Database**: PostgreSQL (Supabase) with SQLAlchemy 2.0 (Async) and Asyncpg.
+- **Caching**: Redis for session storage and rate limiting.
+- **Frontend**: Vanilla JavaScript, Tailwind CSS, Flowbite.
 
-### Frontend
-- Tailwind CSS
-- Flowbite components
-- Vanilla JavaScript
+### Infrastructure
+- **Containerization**: Docker (multi-stage build).
+- **Hosting**: Render (Web Service).
+- **Proxy**: Cloudflare (custom IP detection logic implemented).
 
-### Deployment
-- Docker-ready
-- Environment-based configuration
-- HTTPS required in production
+## API Documentation
 
-## Development
+### Endpoints
+- `GET /`: Homepage
+- `GET /demo`: Interactive demo with sample data (no login required)
+- `GET /login`: Initiate Strava OAuth flow
+- `GET /callback`: OAuth callback handler
+- `GET /activities`: View authenticated user's recent activities
+- `GET /customize`: Customization interface for selected activity
+- `GET /api/activities/sync`: JSON endpoint to sync data from Strava (CSRF protected)
+- `POST /logout`: Terminate user session
 
-### Local Setup
+## Development Setup
+
 ```bash
-# Install dependencies
+# Clone and setup
+git clone https://github.com/spyroslontos/FitnessOverlays.git
+cd FitnessOverlays
+python -m venv .fitnessoverlays-venv
+source .fitnessoverlays-venv/bin/activate
 pip install -r requirements.txt
 
-# Set environment variables
+# Environment variables
 cp .env.example .env
+# Configure CLIENT_ID, CLIENT_SECRET, etc.
 
-# Run development server
-python server.py
+# Run local server
+uvicorn server:app --reload
 ```
 
-### Environment Variables
-- `CLIENT_ID`: Strava OAuth client ID
-- `CLIENT_SECRET`: Strava OAuth client secret
-- `SQLALCHEMY_DATABASE_URI`: PostgreSQL connection string
-- `RATELIMIT_STORAGE_URI`: Redis connection string
-- `SECRET_KEY`: Flask session secret
+## Security
 
-## API Endpoints
-
-- `GET /`: Homepage
-- `GET /demo`: Demo with sample data
-- `GET /login`: Initiate Strava OAuth
-- `GET /callback`: OAuth callback handler
-- `GET /activities`: View user activities (authenticated)
-- `GET /customize`: Customize overlay (authenticated)
-- `GET /api/activities/sync`: Fetch activities from Strava
-- `POST /logout`: End user session
-
-## Privacy & Security
-
-- Read-only access to Strava data
-- No data sold or shared with third parties
-- HTTPS enforced in production
-- Rate limiting on all endpoints
-- CSRF protection on state-changing requests
-
-## License
-
-AGPL-3.0 - See [LICENSE](LICENSE) for details
-
-## Support
-
-For bugs or feature requests, visit the [GitHub repository](https://github.com/spyroslontos/FitnessOverlays)
+- **Authentication**: Secure cookie-based sessions (Redis-backed in production).
+- **Rate Limiting**: IP-based limiting using `slowapi` and real IP extraction.
+- **CSRF Protection**: Enforced on state-changing requests (including sensitive GETs).
+- **Headers**: Full security headers (HSTS, CSP, X-Content-Type-Options).

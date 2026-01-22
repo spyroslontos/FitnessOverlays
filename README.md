@@ -25,7 +25,7 @@ FitnessOverlays solves this by letting athletes create better overlays from thei
 
 ## Stack
 
-- **Backend**: Python (Flask)
+- **Backend**: Python (FastAPI)
 - **Frontend**: Vanilla JS, Tailwind CSS
 - **Data**: PostgreSQL (Supabase), Redis
 - **Infra**: Docker, Render, Cloudflare
